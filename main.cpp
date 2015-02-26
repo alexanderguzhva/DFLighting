@@ -3,7 +3,7 @@
 //// 0 = disable them
 //// otherwise add walking dwarves (sources of light).
 //// creates great overhead because of naive A* implementation
-#define WALKING_DWARFS_COUNT 0
+#define WALKING_DWARFS_COUNT 20
 
 //// I hate it, but has to implement it
 //#define EGA_COLORS
@@ -39,6 +39,12 @@ using namespace std;
 #include <SDL/SDL_gfxPrimitives.h>
 
 #include <sys/time.h>
+
+
+#include "random.h"
+using namespace dflighting;
+
+
 
 const int WorldXSize = 20;
 const int WorldYSize = 20;
@@ -689,26 +695,6 @@ template <>
 }
 
 
-//
-double myrandom(int * randseed)
-{
-    (*randseed) = (0x08088405 *(*randseed) + 1) & 0x7fffffff;
-    return (((double)(*randseed)) / 0x7fffffff);
-}
-
-int myrandom(int * randseed, int max)
-{
-    (*randseed) = (0x08088405 *(*randseed) + 1) & 0x7fffffff;
-
-    return (*randseed) % max;
-}
-
-
-
-
-
-
-
 
 
 
@@ -1021,16 +1007,16 @@ void GenerateLinesCombinedEdge()
     ////
     double minz = 1;
 
-    int initialRandom = 111;
+    dflighting::random rnd(111);
 
     double sqrt33 = 1.0 / sqrt(3);
 
     for (int i = 0; i < NGenPointsUFEdge; i++)
     {
         //// minimal value for z0 is sqrt33, so let's roll z0 from sqrt33 to 1
-        double z0 = myrandom(&initialRandom) * (1.0 - sqrt33) + sqrt33;
+        double z0 = rnd.nextDouble() * (1.0 - sqrt33) + sqrt33;
 
-        double angle = 2 * 3.14159265358 * myrandom(&initialRandom);
+        double angle = 2 * 3.14159265358 * rnd.nextDouble();
         double r = sqrt(1 - z0 * z0);
         double x0 = r * cos(angle);
         double y0 = r * sin(angle);
@@ -2464,13 +2450,13 @@ public:
         double sqrt33 = 1.0 / sqrt(3);
 
         ////
-        int initialRandom = 111;
+        dflighting::random rng(111);
         for (int i = 0; i < nGenPointsUF; i++)
         {
             //double z = myrandom(&initialRandom);
-            double z = myrandom(&initialRandom) * (1.0 - sqrt33) + sqrt33;
+            double z = rng.nextDouble() * (1.0 - sqrt33) + sqrt33;
 
-            double t = 2 * 3.14159265358 * myrandom(&initialRandom);
+            double t = 2 * 3.14159265358 * rng.nextDouble();
             double r = sqrt(1 - z * z);
             double x = r * cos(t);
             double y = r * sin(t);
@@ -5355,7 +5341,8 @@ public:
 //
 std::vector<WalkingAgent *> WalkingAgents;
 
-int WalkingRandseed;
+//int WalkingRandseed;
+dflighting::random walkingRng;
 
 ////
 void CreateWalkingAgents()
@@ -5365,7 +5352,8 @@ void CreateWalkingAgents()
         auto wa = new WalkingAgent();
 
         //// create a starting point
-        int id = myrandom(&WalkingRandseed, PathfindableCells.size());
+        //int id = myrandom(&WalkingRandseed, PathfindableCells.size());
+        int id = walkingRng.next(PathfindableCells.size());
         int x = PathfindableCells[id]->X;
         int y = PathfindableCells[id]->Y;
         int z = PathfindableCells[id]->Z;
@@ -5375,7 +5363,8 @@ void CreateWalkingAgents()
         wa->Z = z;
 
         //// random picture
-        int pic = myrandom(&WalkingRandseed, DFDwarvesAllowedCells.size());
+        //int pic = myrandom(&WalkingRandseed, DFDwarvesAllowedCells.size());
+        int pic = walkingRng.next(DFDwarvesAllowedCells.size());
         wa->XPicture = DFDwarvesAllowedCells[pic].first;
         wa->YPicture = DFDwarvesAllowedCells[pic].second;
 
@@ -5417,7 +5406,8 @@ void IterateAgent(WalkingAgent * wa)
         delete wa->WalkingPath;
 
     //// select random destination
-    int id = myrandom(&WalkingRandseed, PathfindableCells.size());
+    //int id = myrandom(&WalkingRandseed, PathfindableCells.size());
+    int id = walkingRng.next(PathfindableCells.size());
     int x = PathfindableCells[id]->X;
     int y = PathfindableCells[id]->Y;
     int z = PathfindableCells[id]->Z;
@@ -6516,7 +6506,9 @@ int main(int argc, char** argv)
         delete renderPath;
 
 
-    WalkingRandseed = 13123121;
+
+    //WalkingRandseed = 13123121;
+    walkingRng = dflighting::random(13123121);
     CreateWalkingAgents();
 
     ////

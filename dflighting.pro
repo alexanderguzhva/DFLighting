@@ -3,7 +3,8 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    random.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -25,6 +26,7 @@ INCLUDEPATH += /usr/include/SDL
 LIBS += -lSDL -lSDL_image -lSDL_gfx
 
 
-HEADERS +=
+HEADERS += \
+    random.h
 
 
