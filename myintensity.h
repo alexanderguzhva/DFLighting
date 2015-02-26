@@ -1,5 +1,0 @@
-#ifndef MYINTENSITY_H
-#define MYINTENSITY_H
-
-#endif // MYINTENSITY_H
-
