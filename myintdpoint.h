@@ -1,0 +1,5 @@
+#ifndef MYINTDPOINT
+#define MYINTDPOINT
+
+#endif // MYINTDPOINT
+
