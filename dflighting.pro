@@ -25,9 +25,6 @@ INCLUDEPATH += /usr/include/SDL
 LIBS += -lSDL -lSDL_image -lSDL_gfx
 
 
-include(deployment.pri)
-qtcAddDeployment()
-
 HEADERS +=
 
 
