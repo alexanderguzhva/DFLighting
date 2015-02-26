@@ -27,6 +27,8 @@ LIBS += -lSDL -lSDL_image -lSDL_gfx
 
 
 HEADERS += \
-    random.h
+    random.h \
+    mydoublelinkedlistelement.h \
+    mydoublelinkedlist.h
 
 
