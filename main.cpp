@@ -1007,7 +1007,7 @@ void GenerateLinesCombinedEdge()
     ////
     double minz = 1;
 
-    dflighting::random rnd(111);
+    dflighting::Random rnd(111);
 
     double sqrt33 = 1.0 / sqrt(3);
 
@@ -2450,7 +2450,7 @@ public:
         double sqrt33 = 1.0 / sqrt(3);
 
         ////
-        dflighting::random rng(111);
+        dflighting::Random rng(111);
         for (int i = 0; i < nGenPointsUF; i++)
         {
             //double z = myrandom(&initialRandom);
@@ -5342,7 +5342,7 @@ public:
 std::vector<WalkingAgent *> WalkingAgents;
 
 //int WalkingRandseed;
-dflighting::random walkingRng;
+dflighting::Random walkingRng;
 
 ////
 void CreateWalkingAgents()
@@ -6508,7 +6508,7 @@ int main(int argc, char** argv)
 
 
     //WalkingRandseed = 13123121;
-    walkingRng = dflighting::random(13123121);
+    walkingRng = dflighting::Random(13123121);
     CreateWalkingAgents();
 
     ////

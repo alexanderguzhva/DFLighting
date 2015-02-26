@@ -4,40 +4,40 @@ namespace dflighting
 {
 
 //
-random::random()
+Random::Random()
 {
     randomSeed = 123;
 }
 
 //
-random::random(const int seed) : randomSeed(seed)
+Random::Random(const int seed) : randomSeed(seed)
 {
 
 }
 
 
 //
-int random::getRandomSeed() const
+int Random::getRandomSeed() const
 {
     return randomSeed;
 }
 
 //
-void random::setRandomSeed(const int seed)
+void Random::setRandomSeed(const int seed)
 {
     randomSeed = seed;
 }
 
 
 //
-double random::nextDouble()
+double Random::nextDouble()
 {
     randomSeed = ((long long)0x08088405 * (long long)(randomSeed) + 1) & 0x7fffffff;
     return (((double)randomSeed) / 0x7fffffff);
 }
 
 //
-int random::next(const int max)
+int Random::next(const int max)
 {
     randomSeed = ((long long)0x08088405 * (long long)(randomSeed) + 1) & 0x7fffffff;
 

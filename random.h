@@ -6,11 +6,11 @@ namespace dflighting
 {
 
 
-class random
+class Random
 {
 public:
-    random();
-    random(const int seed);
+    Random();
+    Random(const int seed);
 
     int getRandomSeed() const;
     void setRandomSeed(const int seed);
