@@ -51,6 +51,7 @@ HEADERS += \
     my3dfacedcell.h \
     mapcomputecellfacedmap.h \
     mydoubleeqpoint.h \
-    supportsplitstring.h
+    supportsplitstring.h \
+    tilestructures.h
 
 
