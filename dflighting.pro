@@ -5,7 +5,8 @@ CONFIG -= qt
 
 SOURCES += main.cpp \
     random.cpp \
-    egacolorsmapper.cpp
+    egacolorsmapper.cpp \
+    mapcomputecell.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -37,6 +38,7 @@ HEADERS += \
     egacolorsmapper.h \
     myintpoint.h \
     myintdpoint.h \
-    mydoublepoint.h
+    mydoublepoint.h \
+    mapcomputecell.h
 
 
