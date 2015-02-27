@@ -56,6 +56,7 @@ HEADERS += \
     supportsplitstring.h \
     tilestructures.h \
     tile.h \
-    worldmap.h
+    worldmap.h \
+    colorercell.h
 
 
