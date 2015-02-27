@@ -58,6 +58,8 @@ using namespace std;
 #include "my3dfacedcell.h"
 #include "mapcomputecellfacedmap.h"
 
+#include "supportsplitstring.h"
+
 using namespace dflighting;
 
 
@@ -141,16 +143,6 @@ void ShutDown()
 
 
 
-
-
-
-void SupportSplitString(const std::string & s, char delim, std::vector<std::string> & elems)
-{
-    std::stringstream ss(s);
-    std::string item;
-    while(std::getline(ss, item, delim))
-        elems.push_back(item);
-};
 
 
 
@@ -1078,7 +1070,7 @@ void LoadDFMap()
     getline(ifile, sDimensions);
 
     std::vector<std::string> dimensionElements;
-    SupportSplitString(sDimensions, ' ', dimensionElements);
+    SupportSplitString::Split(sDimensions, ' ', dimensionElements);
 
     ////
     worldMap = new WorldMap(
@@ -1098,7 +1090,7 @@ void LoadDFMap()
         getline(ifile, sInMat);
 
         std::vector<std::string> mats;
-        SupportSplitString(sInMat, ' ', mats);
+        SupportSplitString::Split(sInMat, ' ', mats);
 
         Material * newMat = new Material;
         newMat->index = atoi(mats[0].c_str());
@@ -1119,7 +1111,7 @@ void LoadDFMap()
         getline(ifile, sInMat);
 
         std::vector<std::string> mats;
-        SupportSplitString(sInMat, ' ', mats);
+        SupportSplitString::Split(sInMat, ' ', mats);
 
         Material * newMat = new Material;
         newMat->index = atoi(mats[0].c_str());
@@ -1160,7 +1152,7 @@ void LoadDFMap()
         getline(ifile, sLine);
 
         std::vector<std::string> data;
-        SupportSplitString(sLine, ' ', data);
+        SupportSplitString::Split(sLine, ' ', data);
 
         if (data.size() == 0)
             continue;
@@ -1285,7 +1277,7 @@ void LoadDFMap()
         getline(ifile, sLine);
 
         std::vector<std::string> data;
-        SupportSplitString(sLine, ' ', data);
+        SupportSplitString::Split(sLine, ' ', data);
 
         if (data.size() == 0)
             continue;

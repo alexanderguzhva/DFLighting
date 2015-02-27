@@ -10,7 +10,8 @@ SOURCES += main.cpp \
     my3dface.cpp \
     my3dfacedcell.cpp \
     mapcomputecellfacedmap.cpp \
-    mydoubleeqpoint.cpp
+    mydoubleeqpoint.cpp \
+    supportsplitstring.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -49,6 +50,7 @@ HEADERS += \
     my3dface.h \
     my3dfacedcell.h \
     mapcomputecellfacedmap.h \
-    mydoubleeqpoint.h
+    mydoubleeqpoint.h \
+    supportsplitstring.h
 
 
