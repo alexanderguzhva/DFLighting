@@ -6,7 +6,7 @@
 #define WALKING_DWARFS_COUNT 20
 
 //// I hate it, but has to implement it
-//#define EGA_COLORS
+#define EGA_COLORS
 
 //// I used up to 80. 80 takes a lot(LOT) of time to generate and is 29M file, btw
 //#define GENERATE_DEPTH_FILE
@@ -45,6 +45,7 @@ using namespace std;
 #include "mydoublelinkedlist.h"
 #include "mycolor.h"
 #include "myintensity.h"
+#include "egacolorsmapper.h"
 using namespace dflighting;
 
 
@@ -54,6 +55,7 @@ const int WorldYSize = 20;
 const int WorldZSize = 20;
 
 
+dflighting::EGAColorsMapper EGACMapper;
 
 
 
@@ -65,11 +67,6 @@ const int WorldZSize = 20;
 
 
 
-
-std::vector<MyColor> EGAColors;
-
-int EGAColorsMappingQuantity = 32;
-MyColor * EGAColorsMapping;
 
 
 //
@@ -5475,11 +5472,11 @@ void Render()
 
 #ifdef EGA_COLORS
 
-                            rg = (rg * EGAColorsMappingQuantity) / 256;
-                            gg = (gg * EGAColorsMappingQuantity) / 256;
-                            bg = (bg * EGAColorsMappingQuantity) / 256;
+                            rg = (rg * EGACMapper.EGAColorsMappingQuantity) / 256;
+                            gg = (gg * EGACMapper.EGAColorsMappingQuantity) / 256;
+                            bg = (bg * EGACMapper.EGAColorsMappingQuantity) / 256;
 
-                            MyColor mc = EGAColorsMapping[(rg * EGAColorsMappingQuantity + gg) * EGAColorsMappingQuantity + bg];
+                            MyColor mc = EGACMapper.EGAColorsMapping[(rg * EGACMapper.EGAColorsMappingQuantity + gg) * EGACMapper.EGAColorsMappingQuantity + bg];
                             rg = mc.R;
                             gg = mc.G;
                             bg = mc.B;
@@ -5514,11 +5511,11 @@ void Render()
                             bg = (Uint8)(bg * bva);
 
 #ifdef EGA_COLORS
-                            rg = (rg * EGAColorsMappingQuantity) / 256;
-                            gg = (gg * EGAColorsMappingQuantity) / 256;
-                            bg = (bg * EGAColorsMappingQuantity) / 256;
+                            rg = (rg * EGACMapper.EGAColorsMappingQuantity) / 256;
+                            gg = (gg * EGACMapper.EGAColorsMappingQuantity) / 256;
+                            bg = (bg * EGACMapper.EGAColorsMappingQuantity) / 256;
 
-                            MyColor mc = EGAColorsMapping[(rg * EGAColorsMappingQuantity + gg) * EGAColorsMappingQuantity + bg];
+                            MyColor mc = EGACMapper.EGAColorsMapping[(rg * EGACMapper.EGAColorsMappingQuantity + gg) * EGACMapper.EGAColorsMappingQuantity + bg];
                             rg = mc.R;
                             gg = mc.G;
                             bg = mc.B;
@@ -5782,64 +5779,7 @@ int main(int argc, char** argv)
     //ShutDown();
     //return 0;
 
-    //// std ega palette
-    EGAColors.push_back(MyColor(0x00, 0x00, 0x00));
-    EGAColors.push_back(MyColor(0x00, 0x00, 0xAA));
-    EGAColors.push_back(MyColor(0x00, 0xAA, 0x00));
-    EGAColors.push_back(MyColor(0x00, 0xAA, 0xAA));
-
-    EGAColors.push_back(MyColor(0xAA, 0x00, 0x00));
-    EGAColors.push_back(MyColor(0xAA, 0x00, 0xAA));
-    EGAColors.push_back(MyColor(0xAA, 0x55, 0x00));
-    EGAColors.push_back(MyColor(0xAA, 0xAA, 0xAA));
-
-    EGAColors.push_back(MyColor(0x55, 0x55, 0x55));
-    EGAColors.push_back(MyColor(0x55, 0x55, 0xFF));
-    EGAColors.push_back(MyColor(0x55, 0xFF, 0x55));
-    EGAColors.push_back(MyColor(0x55, 0xFF, 0xFF));
-
-    EGAColors.push_back(MyColor(0xFF, 0x55, 0x55));
-    EGAColors.push_back(MyColor(0xFF, 0x55, 0xFF));
-    EGAColors.push_back(MyColor(0xFF, 0xFF, 0x55));
-    EGAColors.push_back(MyColor(0xFF, 0xFF, 0xFF));
-
-    ////
-    EGAColorsMapping = new MyColor[EGAColorsMappingQuantity * EGAColorsMappingQuantity * EGAColorsMappingQuantity];
-
-    int amount = 256 / EGAColorsMappingQuantity;
-    for (int r = 0; r < EGAColorsMappingQuantity; r++)
-    {
-        int rc = r * amount;
-        for (int g = 0; g < EGAColorsMappingQuantity; g++)
-        {
-            int gc = g * amount;
-            for (int b = 0; b < EGAColorsMappingQuantity; b++)
-            {
-                int bc = b * amount;
-
-                int minIndex = 0;
-                int index = 0;
-                double mindistance = 9999999999999999;
-                for (auto color : EGAColors)
-                {
-                    double distance =
-                            (rc - color.R) * (rc - color.R) +
-                            (gc - color.G) * (gc - color.G) +
-                            (bc - color.B) * (bc - color.B);
-
-                    if (mindistance > distance)
-                    {
-                        mindistance = distance;
-                        minIndex = index;
-                    }
-
-                    index += 1;
-                }
-
-                EGAColorsMapping[(r * EGAColorsMappingQuantity + g) * EGAColorsMappingQuantity + b] = EGAColors[minIndex];
-            }
-        }
-    }
+    EGACMapper.CreateMapping();
 
 
 
@@ -6370,7 +6310,10 @@ int main(int argc, char** argv)
 
 
 
-        Tile * t = worldMap->operator ()(109, 77, 155);
+        Tile * t = worldMap->operator ()(109, 77, 155);std::vector<MyColor> EGAColors;
+
+        int EGAColorsMappingQuantity = 32;
+        MyColor * EGAColorsMapping;
 
         //sTitle << "Q " << t->LightedByMemoryLights.size() << ". ";
 
