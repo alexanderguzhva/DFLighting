@@ -49,6 +49,8 @@ using namespace std;
 #include "myintpoint.h"
 #include "myintdpoint.h"
 #include "mydoublepoint.h"
+#include "mapcomputecell.h"
+
 using namespace dflighting;
 
 
@@ -72,51 +74,6 @@ dflighting::EGAColorsMapper EGACMapper;
 
 
 
-//
-typedef float DirectionsTypeF[3][3];
-
-//
-//const int NLayers = 20;
-
-class MapComputeCell
-{
-public:
-    DirectionsTypeF Directions;
-    MyIntensity Intensity;
-    bool IsProcessMarked;
-    bool IsWithinLightedCellsArray;
-
-    void Clear()
-    {
-        for (int i = 0; i < 3; i++)
-            for (int j = 0;j < 3; j++)
-                Directions[i][j] = 0;
-
-        Intensity = 0;
-        IsProcessMarked = false;
-        IsWithinLightedCellsArray = false;
-    }
-
-    //
-    void SaveToStream(std::ostream * stream)
-    {
-        for (int i = 0; i < 3; i++)
-            for (int j = 0;j < 3; j++)
-                stream->write(reinterpret_cast<char*>(&(Directions[i][j])), sizeof(float));
-    }
-
-    //
-    void LoadFromStream(std::istream * stream)
-    {
-        for (int i = 0; i < 3; i++)
-            for (int j = 0;j < 3; j++)
-                stream->read(reinterpret_cast<char*>(&(Directions[i][j])), sizeof(float));
-    }
-
-};
-
-
-//MapComputeCell ComputingCells[NLayers + 1][2 * NLayers + 1][2 * NLayers + 1];
 
 
 
