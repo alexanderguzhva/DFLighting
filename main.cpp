@@ -46,6 +46,9 @@ using namespace std;
 #include "mycolor.h"
 #include "myintensity.h"
 #include "egacolorsmapper.h"
+#include "myintpoint.h"
+#include "myintdpoint.h"
+#include "mydoublepoint.h"
 using namespace dflighting;
 
 
@@ -118,64 +121,6 @@ public:
 
 
 
-//
-class MyIntPoint
-{
-public:
-    MyIntPoint() { }
-    MyIntPoint(int x, int y, int z)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-    }
-
-    int X;
-    int Y;
-    int Z;
-};
-
-
-//
-class MyIntDPoint
-{
-public:
-    MyIntDPoint() { }
-    MyIntDPoint(int x, int y, int z, int dir)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-        Dir = dir;
-    }
-
-    int X;
-    int Y;
-    int Z;
-    int Dir;
-
-    bool operator ==(const MyIntDPoint &other) const
-    {
-        return (other.X == this->X &&
-                other.Y == this->Y &&
-                other.Z == this->Z &&
-                other.Dir == this->Dir);
-    }
-
-};
-
-
-namespace std
-{
-template <>
-   struct hash<MyIntDPoint> : public unary_function<MyIntDPoint, size_t>
-   {
-       size_t operator()(const MyIntDPoint& v) const
-       {
-           return v.X + 100 * (v.Y + 100 * (v.Z + 6 * v.Dir)) ;
-       }
-   };
-}
 
 
 
@@ -364,16 +309,6 @@ public:
 
 
 //
-class MyDoublePoint
-{
-public:
-    MyDoublePoint() { }
-    MyDoublePoint(double x, double y, double z) { X = x; Y = y; Z = z; }
-
-    double X;
-    double Y;
-    double Z;
-};
 
 //
 class MyDoubleEqPoint : public MyDoublePoint
@@ -931,7 +866,7 @@ public:
 
     std::unordered_set<LightVisibilityCache1 *> LightedByLights;
     std::unordered_set<LightVisibilityCache1 *> LightedByMemoryLights;
-    std::unordered_set<MyIntDPoint> PotentialLightCaches;
+    std::unordered_set<MyIntDPoint, MyIntDPointHasher> PotentialLightCaches;
 
     std::unordered_set<Tile *> Neighbours;
 
