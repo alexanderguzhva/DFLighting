@@ -34,6 +34,9 @@ HEADERS += \
     visibilityeps.h \
     myintensity.h \
     mycolor.h \
-    egacolorsmapper.h
+    egacolorsmapper.h \
+    myintpoint.h \
+    myintdpoint.h \
+    mydoublepoint.h
 
 
