@@ -200,17 +200,6 @@ int NGenPointsUFEdge = 65536 * 8 * 64;
 ////
 MapComputeCellFacedMap * MapComputeCellsFaced;
 
-////
-void GetCurrentBox(double x, double y, double z,
-                   int * outx, int * outy, int * outz)
-{
-    //// [-1, -1, -1 .. 1, 1, 1) is (0, 0, 0)
-
-    *outx = (int)((x + 1) / 2);
-    *outy = (int)((y + 1) / 2);
-    *outz = (int)((z + 1) / 2);
-}
-
 
 //// edge version
 void GenerateLinesCombinedEdge()
