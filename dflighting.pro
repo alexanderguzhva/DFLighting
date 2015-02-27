@@ -57,6 +57,7 @@ HEADERS += \
     tilestructures.h \
     tile.h \
     worldmap.h \
-    colorercell.h
+    colorercell.h \
+    lightvisibilitycachestruct.h
 
 
