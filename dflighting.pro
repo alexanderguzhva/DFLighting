@@ -13,7 +13,8 @@ SOURCES += main.cpp \
     mydoubleeqpoint.cpp \
     supportsplitstring.cpp \
     tile.cpp \
-    worldmap.cpp
+    worldmap.cpp \
+    lightvisibilitycache1.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -58,6 +59,7 @@ HEADERS += \
     tile.h \
     worldmap.h \
     colorercell.h \
-    lightvisibilitycachestruct.h
+    lightvisibilitycachestruct.h \
+    lightvisibilitycache1.h
 
 

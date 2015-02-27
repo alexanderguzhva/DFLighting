@@ -1,6 +1,8 @@
 #ifndef TILE_H
 #define TILE_H
 
+#include <unordered_set>
+
 #include "mycolor.h"
 #include "myintensity.h"
 

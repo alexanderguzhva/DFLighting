@@ -1,7 +1,10 @@
 #ifndef MYDOUBLELINKEDLIST_H
 #define MYDOUBLELINKEDLIST_H
 
+#include <memory.h>
+
 #include "mydoublelinkedlistelement.h"
+
 
 namespace dflighting
 {

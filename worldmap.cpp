@@ -1,5 +1,6 @@
 #include "worldmap.h"
 
+#include <unordered_set>
 
 namespace dflighting
 {
@@ -140,7 +141,7 @@ void WorldMap::TrackNeighbours(int x, int y, int z)
         return;
 
     ////
-    unordered_set<Tile *> tiles(tile->Neighbours);
+    std::unordered_set<Tile *> tiles(tile->Neighbours);
 
     for (auto t : tiles)
         t->Neighbours.erase(tile);
