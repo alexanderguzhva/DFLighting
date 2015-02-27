@@ -6,7 +6,10 @@ CONFIG -= qt
 SOURCES += main.cpp \
     random.cpp \
     egacolorsmapper.cpp \
-    mapcomputecell.cpp
+    mapcomputecell.cpp \
+    my3dface.cpp \
+    my3dfacedcell.cpp \
+    mapcomputecellfacedmap.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -39,6 +42,11 @@ HEADERS += \
     myintpoint.h \
     myintdpoint.h \
     mydoublepoint.h \
-    mapcomputecell.h
+    mapcomputecell.h \
+    facefaceenum.h \
+    facedirenum.h \
+    my3dface.h \
+    my3dfacedcell.h \
+    mapcomputecellfacedmap.h
 
 

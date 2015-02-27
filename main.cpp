@@ -6,7 +6,7 @@
 #define WALKING_DWARFS_COUNT 20
 
 //// I hate it, but has to implement it
-#define EGA_COLORS
+//#define EGA_COLORS
 
 //// I used up to 80. 80 takes a lot(LOT) of time to generate and is 29M file, btw
 //#define GENERATE_DEPTH_FILE
@@ -49,7 +49,12 @@ using namespace std;
 #include "myintpoint.h"
 #include "myintdpoint.h"
 #include "mydoublepoint.h"
+
 #include "mapcomputecell.h"
+
+#include "my3dface.h"
+#include "my3dfacedcell.h"
+#include "mapcomputecellfacedmap.h"
 
 using namespace dflighting;
 
@@ -87,6 +92,7 @@ dflighting::EGAColorsMapper EGACMapper;
 int WorldOffsetX;
 int WorldOffsetY;
 int WorldOffsetZ;
+
 
 //
 SDL_Surface * Surf_Display;
@@ -148,121 +154,6 @@ void SupportSplitString(const std::string & s, char delim, std::vector<std::stri
 
 
 
-//
-enum FaceFaceEnum
-{
-    Left,
-    Right,
-    Top,
-    Bottom,
-    Up,
-    Down
-};
-
-enum FaceDirEnum
-{
-    XEq,
-    YEq,
-    ZEq
-};
-
-
-//
-class My3DFace
-{
-public:
-    FaceFaceEnum Face;
-    FaceDirEnum Dir;
-
-    long SourceHits;
-    long DestinationHits;
-
-    My3DFace()
-    {
-        X = 0;
-        Y = 0;
-        Z = 0;
-
-        SourceHits = 0;
-        DestinationHits = 0;
-    }
-
-
-    My3DFace(int x, int y, int z, FaceFaceEnum face)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-        Face = face;
-
-        switch(Face)
-        {
-            case FaceFaceEnum::Left:
-            case FaceFaceEnum::Right:
-                Dir = FaceDirEnum::XEq;
-                break;
-            case FaceFaceEnum::Top:
-            case FaceFaceEnum::Bottom:
-                Dir = FaceDirEnum::YEq;
-                break;
-            case FaceFaceEnum::Up:
-            case FaceFaceEnum::Down:
-                Dir = FaceDirEnum::ZEq;
-                break;
-        }
-
-        ////
-        SourceHits = 0;
-        DestinationHits = 0;
-    }
-
-    int X;
-    int Y;
-    int Z;
-};
-
-//
-class My3DFacedCell
-{
-public:
-    My3DFace * LeftFace;
-    My3DFace * RightFace;
-    My3DFace * TopFace;
-    My3DFace * BottomFace;
-    My3DFace * UpFace;
-    My3DFace * DownFace;
-
-    int X;
-    int Y;
-    int Z;
-
-    My3DFacedCell(int x, int y, int z)
-    {
-        X = x;
-        Y = y;
-        Z = z;
-        LeftFace = new My3DFace(X, Y, Z, FaceFaceEnum::Left);
-        RightFace = new My3DFace(X, Y, Z, FaceFaceEnum::Right);
-        TopFace = new My3DFace(X, Y, Z, FaceFaceEnum::Top);
-        BottomFace = new My3DFace(X, Y, Z, FaceFaceEnum::Bottom);
-        UpFace = new My3DFace(X, Y, Z, FaceFaceEnum::Up);
-        DownFace = new My3DFace(X, Y, Z, FaceFaceEnum::Down);
-    }
-
-    My3DFacedCell()
-    {
-        X = 0;
-        Y = 0;
-        Z = 0;
-        LeftFace = nullptr;
-        RightFace = nullptr;
-        TopFace = nullptr;
-        BottomFace = nullptr;
-        UpFace = nullptr;
-        DownFace = nullptr;
-    }
-};
-
 
 
 //
@@ -301,64 +192,9 @@ public:
 //
 int NGenPointsUFEdge = 65536 * 8 * 64;
 
-int NLayersFaced = 20;
 
 
 
-////
-class MapComputeCellFacedMap
-{
-public:
-    My3DFacedCell ** ComputingCellsFaced;
-
-    int x_size;
-    int y_size;
-    int z_size;
-
-    //
-    MapComputeCellFacedMap()
-    {
-        x_size = 2 * NLayersFaced + 1;
-        y_size = 2 * NLayersFaced + 1;
-        z_size = NLayersFaced + 1;
-
-        int amount = x_size * y_size * z_size;
-        ComputingCellsFaced = new My3DFacedCell * [amount];
-
-        for (int x = -NLayersFaced; x <= NLayersFaced; x++)
-            for (int y = -NLayersFaced; y <= NLayersFaced; y++)
-                for (int z = 0; z <= NLayersFaced; z++)
-                    this->operator ()(x, y, z) = new My3DFacedCell(x, y, z);
-
-    }
-
-    //
-    My3DFacedCell *& operator() (int x, int y, int z)
-    {
-        return ComputingCellsFaced[x + NLayersFaced + x_size * (y + NLayersFaced + y_size * z)];
-    }
-
-    //
-    ~MapComputeCellFacedMap()
-    {
-        if (ComputingCellsFaced != nullptr)
-        {
-            int amount = x_size * y_size * z_size;
-            for (int i = 0; i < amount; i++)
-            {
-                if (ComputingCellsFaced[i] != nullptr)
-                {
-                    delete ComputingCellsFaced[i];
-                    ComputingCellsFaced[i] = nullptr;
-                }
-            }
-
-            delete [] ComputingCellsFaced;
-            ComputingCellsFaced = nullptr;
-        }
-    }
-
-};
 
 
 ////
