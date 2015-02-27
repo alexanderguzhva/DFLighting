@@ -9,7 +9,8 @@ SOURCES += main.cpp \
     mapcomputecell.cpp \
     my3dface.cpp \
     my3dfacedcell.cpp \
-    mapcomputecellfacedmap.cpp
+    mapcomputecellfacedmap.cpp \
+    mydoubleeqpoint.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -47,6 +48,7 @@ HEADERS += \
     facedirenum.h \
     my3dface.h \
     my3dfacedcell.h \
-    mapcomputecellfacedmap.h
+    mapcomputecellfacedmap.h \
+    mydoubleeqpoint.h
 
 

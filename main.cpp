@@ -48,7 +48,9 @@ using namespace std;
 #include "egacolorsmapper.h"
 #include "myintpoint.h"
 #include "myintdpoint.h"
+
 #include "mydoublepoint.h"
+#include "mydoubleeqpoint.h"
 
 #include "mapcomputecell.h"
 
@@ -156,37 +158,6 @@ void SupportSplitString(const std::string & s, char delim, std::vector<std::stri
 
 
 
-//
-
-//
-class MyDoubleEqPoint : public MyDoublePoint
-{
-public:
-    MyDoubleEqPoint() : MyDoublePoint()
-    {
-    }
-
-    MyDoubleEqPoint(double x, double y, double z, bool xeq, bool yeq, bool zeq) : MyDoublePoint(x, y, z)
-    {
-        XEq = xeq;
-        YEq = yeq;
-        ZEq = zeq;
-
-        NEqs = 0;
-        if (XEq)
-            NEqs += 1;
-        if (YEq)
-            NEqs += 1;
-        if (ZEq)
-            NEqs += 1;
-    }
-
-    bool XEq;
-    bool YEq;
-    bool ZEq;
-
-    unsigned int NEqs;
-};
 
 
 //
