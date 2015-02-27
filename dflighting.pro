@@ -4,7 +4,8 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    random.cpp
+    random.cpp \
+    egacolorsmapper.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -32,6 +33,7 @@ HEADERS += \
     mydoublelinkedlist.h \
     visibilityeps.h \
     myintensity.h \
-    mycolor.h
+    mycolor.h \
+    egacolorsmapper.h
 
 
