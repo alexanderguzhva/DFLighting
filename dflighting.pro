@@ -11,7 +11,9 @@ SOURCES += main.cpp \
     my3dfacedcell.cpp \
     mapcomputecellfacedmap.cpp \
     mydoubleeqpoint.cpp \
-    supportsplitstring.cpp
+    supportsplitstring.cpp \
+    tile.cpp \
+    worldmap.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -52,6 +54,8 @@ HEADERS += \
     mapcomputecellfacedmap.h \
     mydoubleeqpoint.h \
     supportsplitstring.h \
-    tilestructures.h
+    tilestructures.h \
+    tile.h \
+    worldmap.h
 
 
