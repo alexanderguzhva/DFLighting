@@ -148,7 +148,7 @@ void MapComputeCells::GenerateLinesCombined(int nGenPointsUF)
         std::vector<MyIntPoint> vec;
         Line3DPainter::Draw(0, 0, 0, (int)dx, (int)dy, (int)dz, -NLayers, NLayers, -NLayers, NLayers, 0, NLayers, vec);
 
-        for (int k = 1; k < vec.size(); k++)
+        for (size_t k = 1; k < vec.size(); k++)
         {
             int ax = vec[k].X;
             int ay = vec[k].Y;
