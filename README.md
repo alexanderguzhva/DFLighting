@@ -1,10 +1,15 @@
 # DFLighting
 Dwarf Fortress Lighting project that I completed during hurricane Sandy just for fun.
+
 I'm refactoring it.
+
+
+ALL LIGHTS ARE 3D LIGHTS, not 2D!!!!!!!!!!!!!!!!
+
 
 Check this out (more on my youtube channel)
 
-Note that all slowdowns is because of very naive A* algorithm
+Note that all slowdowns is because of very naive A* algorithm.
 
 
 
