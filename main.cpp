@@ -3,7 +3,7 @@
 //// 0 = disable them
 //// otherwise add walking dwarves (sources of light).
 //// creates great overhead because of naive A* implementation
-#define WALKING_DWARFS_COUNT 0
+#define WALKING_DWARFS_COUNT 2
 
 //// I hate it, but has to implement it
 //#define EGA_COLORS
@@ -72,6 +72,7 @@ using namespace std;
 
 #include "astarpath.h"
 #include "astarpriorityqueue.h"
+#include "astarpathfinder.h"
 
 using namespace dflighting;
 
@@ -2865,88 +2866,6 @@ void ChangeDoor(int x, int y, int z)
 
 
 
-// A*
-class AStarPathFinder
-{
-public:
-    static vector<Tile *> * FindPath(
-            Tile * start,
-            Tile * destination)
-    {
-        vector<AStarPath *> pathsAllocated;
-
-        //// algo
-        std::unordered_set<Tile *> closed;
-        auto priorityQueue = new AStarPriorityQueue<double, AStarPath>;
-
-        ////
-        auto initialPath = new AStarPath(start);
-        priorityQueue->Enqueue(0, initialPath);
-
-        pathsAllocated.push_back(initialPath);
-
-        AStarPath * stPath = nullptr;
-
-
-        while (!priorityQueue->IsEmpty())
-        {
-            ////
-            auto path = priorityQueue->Dequeue();
-
-            //// internal tracking
-            path->LastStep->IsPathfinded = true;
-
-            //// is item inside? continue
-            if (closed.find(path->LastStep) != closed.end())
-                continue;
-
-            ////
-            if (path->LastStep == destination)
-            {
-                //// found it
-                stPath = path;
-                break;
-            }
-
-            closed.insert(path->LastStep);
-
-            for (auto n : path->LastStep->Neighbours)
-            {
-                Tile * node = n;
-
-                //double d = 1; //// distance
-                double d = sqrt((node->X - path->LastStep->X) * (node->X - path->LastStep->X) +
-                                (node->Y - path->LastStep->Y) * (node->Y - path->LastStep->X) +
-                                (node->Z - path->LastStep->Z) * (node->Z - path->LastStep->X));
-
-                double estimate = sqrt((node->X - destination->X) * (node->X - destination->X) +
-                                       (node->Y - destination->Y) * (node->Y - destination->X) +
-                                       (node->Z - destination->Z) * (node->Z - destination->X));
-
-
-                auto newPath = path->AddStep(node, d);
-                pathsAllocated.push_back(newPath);
-
-                priorityQueue->Enqueue(newPath->TotalCost + estimate, newPath);
-            }
-        }
-
-        //// generate output
-        vector<Tile *> * outputVector = nullptr;
-        if (stPath != nullptr)
-            outputVector = stPath->GetNodes();
-
-        //// delete all paths that were allocated
-        for (auto path : pathsAllocated)
-            delete path;
-
-        ////
-        delete priorityQueue;
-
-        ////
-        return outputVector;
-    }
-};
 
 
 //
@@ -4045,6 +3964,10 @@ int main(int argc, char** argv)
     ////
     //ShutDown();
     //return 0;
+
+    std::cout << "Bug: dwarf sees 8 elements forward, player - 40.";
+    std::cout << "But if player goes to a cell that has a lighting cache "
+              << "created by dwarf then it will see a light of 8, not 40".
 
     EGACMapper.CreateMapping();
 
