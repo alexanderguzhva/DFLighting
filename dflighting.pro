@@ -21,7 +21,8 @@ SOURCES += main.cpp \
     astarpathfinder.cpp \
     walkingagent.cpp \
     mapcomputecells.cpp \
-    line3dpainter.cpp
+    line3dpainter.cpp \
+    universe.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -75,6 +76,7 @@ HEADERS += \
     astarpathfinder.h \
     walkingagent.h \
     mapcomputecells.h \
-    line3dpainter.h
+    line3dpainter.h \
+    universe.h
 
 
