@@ -305,14 +305,14 @@ void ProcessKeyDown(SDL_Event * sdlEvent)
             offsetZ -= 1;
             recalculateLighting = true;
             break;
-        case SDLK_q:
+//        case SDLK_q:
             //// change to floor. banned it somewhy? maybe was debugging smth
 //            LightCachesToRemove.clear();
   //          ChangeTileType2(WorldOffsetX, WorldOffsetY, WorldOffsetZ, TileType::FLOOR, TileMaterialType::SOIL);
     //        for(auto light : LightCachesToRemove)
       //          lightWorldMap->DeleteLight(light);
             break;
-        case SDLK_w:
+//        case SDLK_w:
         //// change to wall. banned it somewhy? maybe was debugging smth
 //            LightCachesToRemove.clear();
 //
@@ -321,7 +321,7 @@ void ProcessKeyDown(SDL_Event * sdlEvent)
   //          for(auto light : LightCachesToRemove)
     //            lightWorldMap->DeleteLight(light);
             break;
-        case SDLK_c:
+//        case SDLK_c:
 //            LightCachesToRemove.clear();
 //
   //          ChangeDoor(WorldOffsetX, WorldOffsetY, WorldOffsetZ);
@@ -336,7 +336,8 @@ void ProcessKeyDown(SDL_Event * sdlEvent)
             break;
         case SDLK_SPACE:
             break;
-
+        default:
+            break;
     }
 
 
