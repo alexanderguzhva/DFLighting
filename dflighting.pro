@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     lightworldmap.cpp \
     astarpath.cpp \
     astarpathfinder.cpp \
-    walkingagent.cpp
+    walkingagent.cpp \
+    mapcomputecells.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -71,6 +72,7 @@ HEADERS += \
     astarpath.h \
     astarpriorityqueue.h \
     astarpathfinder.h \
-    walkingagent.h
+    walkingagent.h \
+    mapcomputecells.h
 
 
