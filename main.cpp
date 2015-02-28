@@ -3,7 +3,7 @@
 //// 0 = disable them
 //// otherwise add walking dwarves (sources of light).
 //// creates great overhead because of naive A* implementation
-#define WALKING_DWARFS_COUNT 20
+#define WALKING_DWARFS_COUNT 0
 
 //// I hate it, but has to implement it
 //#define EGA_COLORS
