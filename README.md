@@ -1,10 +1,10 @@
 # DFLighting
-Dwarf Fortress Lighting project that I completed during hurricane Sandy just for fun.
+Dwarf Fortress Lighting project that I completed during hurricane Sandy just for fun. This Lighting Engine was designed to handle thousands of 3D point lights in real-time in a boxed world. 
 
 I'm refactoring it.
 
 
-ALL LIGHTS ARE 3D LIGHTS, not 2D!!!!!!!!!!!!!!!!
+ALL LIGHTS ARE true 3D LIGHTS, not 2D!!!!!!!!!!!!!!!!
 
 
 Check this out (more on my youtube channel). Note that all slowdowns are because of very naive A* algorithm.
