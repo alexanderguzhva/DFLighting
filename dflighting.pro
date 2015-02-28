@@ -22,7 +22,8 @@ SOURCES += main.cpp \
     walkingagent.cpp \
     mapcomputecells.cpp \
     line3dpainter.cpp \
-    universe.cpp
+    universe.cpp \
+    deprecated.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
