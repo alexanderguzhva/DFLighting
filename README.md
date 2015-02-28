@@ -7,10 +7,7 @@ I'm refactoring it.
 ALL LIGHTS ARE 3D LIGHTS, not 2D!!!!!!!!!!!!!!!!
 
 
-Check this out (more on my youtube channel)
-
-Note that all slowdowns is because of very naive A* algorithm.
-
+Check this out (more on my youtube channel). Note that all slowdowns are because of very naive A* algorithm.
 
 
 First demo
