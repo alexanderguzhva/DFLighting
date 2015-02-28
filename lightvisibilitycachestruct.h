@@ -8,6 +8,8 @@
 #include "colorercell.h"
 #include "myintpoint.h"
 
+#include "direction.h"
+
 namespace dflighting
 {
 
@@ -19,7 +21,7 @@ public:
     int WorldX;
     int WorldY;
     int WorldZ;
-    int Dir;
+    Direction Dir;
 
     int LightsHandled;
 
@@ -42,7 +44,7 @@ public:
     std::unordered_set<Tile*> PotentialTiles;
 
     //
-    LightVisibilityCacheStruct(int x, int y, int z, int dir)
+    LightVisibilityCacheStruct(int x, int y, int z, Direction dir)
     {
         WorldX = x;
         WorldY = y;

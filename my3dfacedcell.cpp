@@ -7,12 +7,12 @@ namespace dflighting
 //
 My3DFacedCell::My3DFacedCell(int x, int y, int z) : X(x), Y(y), Z(z)
 {
-    LeftFace = new My3DFace(X, Y, Z, FaceFaceEnum::Left);
-    RightFace = new My3DFace(X, Y, Z, FaceFaceEnum::Right);
-    TopFace = new My3DFace(X, Y, Z, FaceFaceEnum::Top);
-    BottomFace = new My3DFace(X, Y, Z, FaceFaceEnum::Bottom);
-    UpFace = new My3DFace(X, Y, Z, FaceFaceEnum::Up);
-    DownFace = new My3DFace(X, Y, Z, FaceFaceEnum::Down);
+    LeftFace = new My3DFace(X, Y, Z, Direction::Left);
+    RightFace = new My3DFace(X, Y, Z, Direction::Right);
+    TopFace = new My3DFace(X, Y, Z, Direction::Top);
+    BottomFace = new My3DFace(X, Y, Z, Direction::Bottom);
+    UpFace = new My3DFace(X, Y, Z, Direction::Up);
+    DownFace = new My3DFace(X, Y, Z, Direction::Down);
 }
 
 //

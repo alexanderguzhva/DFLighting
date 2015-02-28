@@ -18,7 +18,7 @@ public:
     int WorldX;
     int WorldY;
     int WorldZ;
-    int Dir;
+    Direction Dir;
 
     MyColor Color;
     int MaxLayers;
@@ -29,7 +29,7 @@ public:
     std::vector<Tile*> MTilesHit;
 
     //
-    LightVisibilityCache1(int x, int y, int z, int dir, MyColor color);
+    LightVisibilityCache1(int x, int y, int z, Direction dir, MyColor color);
 
     //
     static int Color2MaxLayers(const MyColor &color);

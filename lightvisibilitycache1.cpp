@@ -99,7 +99,7 @@ float MinIntensityToSee = 32;
 
 
 //
-LightVisibilityCache1::LightVisibilityCache1(int x, int y, int z, int dir, MyColor color)
+LightVisibilityCache1::LightVisibilityCache1(int x, int y, int z, Direction dir, MyColor color)
 {
     WorldX = x;
     WorldY = y;

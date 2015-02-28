@@ -635,12 +635,12 @@ void Render()
                 }
 
                 ////
-                lightCached0 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 0) != nullptr);
-                lightCached1 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 1) != nullptr);
-                lightCached2 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 2) != nullptr);
-                lightCached3 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 3) != nullptr);
-                lightCached4 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 4) != nullptr);
-                lightCached5 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 5) != nullptr);
+                lightCached0 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, Direction::Left) != nullptr);
+                lightCached1 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, Direction::Right) != nullptr);
+                lightCached2 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, Direction::Top) != nullptr);
+                lightCached3 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, Direction::Bottom) != nullptr);
+                lightCached4 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, Direction::Up) != nullptr);
+                lightCached5 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, Direction::Down) != nullptr);
             }
 
 
@@ -1069,7 +1069,7 @@ void generateLightCacheFile()
     Unv.lightWorldMap = new LightWorldMap(200, 200, 200);
 
     // render light
-    LightVisibilityCache1 lc(90, 90, 90, 0, MyColor(0, 0, 0));
+    LightVisibilityCache1 lc(90, 90, 90, Direction::Left, MyColor(0, 0, 0));
     lc.MaxLayers = GENERATE_RENDER_DEPTH;
     Unv.PlaceLight1ToMap(&lc);
 

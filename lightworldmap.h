@@ -6,6 +6,7 @@
 #include "mydoublelinkedlist.h"
 #include "myintdpoint.h"
 #include "lightvisibilitycache1.h"
+#include "direction.h"
 
 namespace dflighting
 {
@@ -32,9 +33,9 @@ public:
     ~LightWorldMap();
 
     //
-    LightVisibilityCacheStruct *& operator() (int x, int y, int z, int dir)
+    LightVisibilityCacheStruct *& operator() (int x, int y, int z, Direction dir)
     {
-        return LightTiles[x + x_size * (y + y_size * (z + dir * z_size))];
+        return LightTiles[x + x_size * (y + y_size * (z + static_cast<int>(dir) * z_size))];
     }
 
     //
@@ -56,7 +57,7 @@ public:
     }
 
     //
-    LightVisibilityCacheStruct * CreateLightCache(int x, int y, int z, int dir);
+    LightVisibilityCacheStruct * CreateLightCache(int x, int y, int z, Direction dir);
 
     //
     void DeleteLightCache(LightVisibilityCacheStruct * light);
