@@ -3,7 +3,7 @@
 //// 0 = disable them
 //// otherwise add walking dwarves (sources of light).
 //// creates great overhead because of naive A* implementation
-#define WALKING_DWARFS_COUNT 0
+#define WALKING_DWARFS_COUNT 2
 
 //// I hate it, but has to implement it
 //#define EGA_COLORS
@@ -69,6 +69,12 @@ using namespace std;
 #include "lightvisibilitycache1.h"
 #include "lightvisibilitycache6.h"
 #include "lightworldmap.h"
+
+#include "astarpath.h"
+#include "astarpriorityqueue.h"
+#include "astarpathfinder.h"
+
+#include "walkingagent.h"
 
 using namespace dflighting;
 
@@ -2859,204 +2865,9 @@ void ChangeDoor(int x, int y, int z)
 /////////////////
 /////// A* from Eric Lippert
 
-// A*
-class AStarPath
-{
-public:
-    Tile * LastStep;
-    AStarPath * PreviousSteps;
-    double TotalCost;
-
-    AStarPath(Tile * lastStep, AStarPath * previousSteps, double totalCost)
-    {
-        LastStep = lastStep;
-        PreviousSteps = previousSteps;
-        TotalCost = totalCost;
-    }
-
-    AStarPath(Tile * nodeStart) : AStarPath(nodeStart, nullptr, 0) {}
-
-    AStarPath * AddStep(Tile * step, double stepCost)
-    {
-        AStarPath * newPath = new AStarPath(step, this, TotalCost + stepCost);
-        return newPath;
-    }
-
-    std::vector<Tile *> * GetNodes()
-    {
-        auto outList = new std::vector<Tile *>;
-
-        stack<Tile*> outStack;
-
-        ////
-        AStarPath * path = this;
-
-        while (path != nullptr)
-        {
-            outStack.push(path->LastStep);
-            path = path->PreviousSteps;
-        }
-
-        while (!outStack.empty())
-        {
-            Tile * tile = outStack.top();
-            outList->push_back(tile);
-            outStack.pop();
-        }
-
-        return outList;
-    }
-};
-
-// A*
-template<typename U, typename V>
-class AStarPriorityQueue
-{
-public:
-    std::map<U, std::queue<V *> *> * List;
-
-    AStarPriorityQueue()
-    {
-        List = new std::map<U, std::queue<V *> *>;
-    }
-
-    ~AStarPriorityQueue()
-    {
-        for (auto x : *List)
-            delete x.second;
-
-        delete List;
-    }
-
-    void Enqueue(U priority, V * value)
-    {
-        std::queue<V *> * q;
-
-        auto iter = List->find(priority);
-        if (iter == List->end())
-        {
-            //// not found
-            q = new std::queue<V *>;
-            List->insert(std::pair<U, std::queue<V *> *>(priority, q));
-        }
-        else
-        {
-            q = iter->second;
-        }
-
-        ////
-        q->push(value);
-    }
-
-    V * Dequeue()
-    {
-        auto iter = List->begin();
-
-        U priority = iter->first;
-        std::queue<V *> * theQueue = iter->second;
-
-        V * v = theQueue->front();
-        theQueue->pop();
-
-        if (theQueue->size() == 0)
-        {
-            List->erase(priority);
-            delete theQueue;
-        }
-
-        return v;
-    }
-
-    bool IsEmpty()
-    {
-        return (List->size() == 0);
-    }
-};
 
 
 
-// A*
-class AStarPathFinder
-{
-public:
-    static vector<Tile *> * FindPath(
-            Tile * start,
-            Tile * destination)
-    {
-        vector<AStarPath *> pathsAllocated;
-
-        //// algo
-        std::unordered_set<Tile *> closed;
-        auto priorityQueue = new AStarPriorityQueue<double, AStarPath>;
-
-        ////
-        auto initialPath = new AStarPath(start);
-        priorityQueue->Enqueue(0, initialPath);
-
-        pathsAllocated.push_back(initialPath);
-
-        AStarPath * stPath = nullptr;
-
-
-        while (!priorityQueue->IsEmpty())
-        {
-            ////
-            auto path = priorityQueue->Dequeue();
-
-            //// internal tracking
-            path->LastStep->IsPathfinded = true;
-
-            //// is item inside? continue
-            if (closed.find(path->LastStep) != closed.end())
-                continue;
-
-            ////
-            if (path->LastStep == destination)
-            {
-                //// found it
-                stPath = path;
-                break;
-            }
-
-            closed.insert(path->LastStep);
-
-            for (auto n : path->LastStep->Neighbours)
-            {
-                Tile * node = n;
-
-                //double d = 1; //// distance
-                double d = sqrt((node->X - path->LastStep->X) * (node->X - path->LastStep->X) +
-                                (node->Y - path->LastStep->Y) * (node->Y - path->LastStep->X) +
-                                (node->Z - path->LastStep->Z) * (node->Z - path->LastStep->X));
-
-                double estimate = sqrt((node->X - destination->X) * (node->X - destination->X) +
-                                       (node->Y - destination->Y) * (node->Y - destination->X) +
-                                       (node->Z - destination->Z) * (node->Z - destination->X));
-
-
-                auto newPath = path->AddStep(node, d);
-                pathsAllocated.push_back(newPath);
-
-                priorityQueue->Enqueue(newPath->TotalCost + estimate, newPath);
-            }
-        }
-
-        //// generate output
-        vector<Tile *> * outputVector = nullptr;
-        if (stPath != nullptr)
-            outputVector = stPath->GetNodes();
-
-        //// delete all paths that were allocated
-        for (auto path : pathsAllocated)
-            delete path;
-
-        ////
-        delete priorityQueue;
-
-        ////
-        return outputVector;
-    }
-};
 
 
 //
@@ -3155,54 +2966,6 @@ void LoadDFDwarvesSetBannedCells()
 }
 
 
-////
-class WalkingAgent
-{
-public:
-    int X;
-    int Y;
-    int Z;
-
-    int XPicture;
-    int YPicture;
-
-    std::vector<Tile *> * WalkingPath;
-    int CurrentTile;
-
-    int LightPower;
-
-    LightVisibilityCache6 * MemoryLight;
-    LightVisibilityCache6 * Light;
-
-    WalkingAgent()
-    {
-        WalkingPath = nullptr;
-
-        MemoryLight = nullptr;
-        Light = nullptr;
-    }
-
-    ~WalkingAgent()
-    {
-        if (WalkingPath != nullptr)
-        {
-            delete WalkingPath;
-            WalkingPath = nullptr;
-        }
-
-        if (MemoryLight != nullptr)
-        {
-            delete MemoryLight;
-            MemoryLight = nullptr;
-        }
-
-        if (Light != nullptr)
-        {
-            delete Light;
-            Light = nullptr;
-        }
-    }
-};
 
 
 //
@@ -4155,6 +3918,11 @@ int main(int argc, char** argv)
     ////
     //ShutDown();
     //return 0;
+
+    std::cout << "Bug: dwarf sees 8 elements forward, player - 40.";
+    std::cout << "But if player goes to a cell that has a lighting cache "
+              << "created by dwarf then it will see a light of 8, not 40" <<
+                 std::endl;
 
     EGACMapper.CreateMapping();
 
