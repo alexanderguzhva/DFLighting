@@ -290,30 +290,30 @@ void Universe::LoadDFMap()
 
 //
 //
-void Universe::CreateVisibilityCache(int i, int j, int k, int dir, int maxLayers)
+void Universe::CreateVisibilityCache(int i, int j, int k, Direction dir, int maxLayers)
 {
     MyIntensity color(1);
 
     ////
     switch(dir)
     {
-        case 0:
-            ComputingCells.TraceVisibility3<0>(i, j, k, color, maxLayers, worldMap);
+        case Direction::Left:
+            ComputingCells.TraceVisibility3<Direction::Left>(i, j, k, color, maxLayers, worldMap);
             break;
-        case 1:
-            ComputingCells.TraceVisibility3<1>(i, j, k, color, maxLayers, worldMap);
+        case Direction::Right:
+            ComputingCells.TraceVisibility3<Direction::Right>(i, j, k, color, maxLayers, worldMap);
             break;
-        case 2:
-            ComputingCells.TraceVisibility3<2>(i, j, k, color, maxLayers, worldMap);
+        case Direction::Top:
+            ComputingCells.TraceVisibility3<Direction::Top>(i, j, k, color, maxLayers, worldMap);
             break;
-        case 3:
-            ComputingCells.TraceVisibility3<3>(i, j, k, color, maxLayers, worldMap);
+        case Direction::Bottom:
+            ComputingCells.TraceVisibility3<Direction::Bottom>(i, j, k, color, maxLayers, worldMap);
             break;
-        case 4:
-            ComputingCells.TraceVisibility3<4>(i, j, k, color, maxLayers, worldMap);
+        case Direction::Up:
+            ComputingCells.TraceVisibility3<Direction::Up>(i, j, k, color, maxLayers, worldMap);
             break;
-        case 5:
-            ComputingCells.TraceVisibility3<5>(i, j, k, color, maxLayers, worldMap);
+        case Direction::Down:
+            ComputingCells.TraceVisibility3<Direction::Down>(i, j, k, color, maxLayers, worldMap);
             break;
     }
 
@@ -365,7 +365,7 @@ void Universe::CreateVisibilityCache(int i, int j, int k, int dir, int maxLayers
 
 
 //
-LightVisibilityCacheStruct * Universe::GetOrCreateVisibilityCachedLight(int stx, int sty, int stz, int dir, int maxLayersToCache)
+LightVisibilityCacheStruct * Universe::GetOrCreateVisibilityCachedLight(int stx, int sty, int stz, Direction dir, int maxLayersToCache)
 {
     LightVisibilityCacheStruct * light = lightWorldMap->operator ()(stx, sty, stz, dir);
 
@@ -476,7 +476,7 @@ void Universe::PlaceLight1ToMap(LightVisibilityCache1 * light1)
     int stx = light1->WorldX;
     int sty = light1->WorldY;
     int stz = light1->WorldZ;
-    int dir = light1->Dir;
+    Direction dir = light1->Dir;
 
     //// emit or create caches
     LightVisibilityCacheStruct * lightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, dir, light1->MaxLayers);
@@ -500,12 +500,12 @@ void Universe::PlaceLight6ToMap(LightVisibilityCache6 * light6)
     int stz = light6->WorldZ;
 
     //// emit or create caches
-    LightVisibilityCacheStruct * leftLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 0, light6->LeftLight->MaxLayers);
-    LightVisibilityCacheStruct * rightLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 1, light6->RightLight->MaxLayers);
-    LightVisibilityCacheStruct * topLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 2, light6->TopLight->MaxLayers);
-    LightVisibilityCacheStruct * bottomLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 3, light6->BottomLight->MaxLayers);
-    LightVisibilityCacheStruct * upLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 4, light6->UpLight->MaxLayers);
-    LightVisibilityCacheStruct * downLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 5, light6->DownLight->MaxLayers);
+    LightVisibilityCacheStruct * leftLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Left, light6->LeftLight->MaxLayers);
+    LightVisibilityCacheStruct * rightLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Right, light6->RightLight->MaxLayers);
+    LightVisibilityCacheStruct * topLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Top, light6->TopLight->MaxLayers);
+    LightVisibilityCacheStruct * bottomLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Bottom, light6->BottomLight->MaxLayers);
+    LightVisibilityCacheStruct * upLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Up, light6->UpLight->MaxLayers);
+    LightVisibilityCacheStruct * downLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Down, light6->DownLight->MaxLayers);
 
     //// notify cache about lights count
     leftLightCache->LightsHandled += 1;
@@ -537,7 +537,7 @@ void Universe::RemoveLight1FromMap(LightVisibilityCache1 * light1)
     int & x = light1->WorldX;
     int & y = light1->WorldY;
     int & z = light1->WorldZ;
-    int & dir = light1->Dir;
+    Direction & dir = light1->Dir;
     MyColor & color = light1->Color;
 
     ////
@@ -748,7 +748,7 @@ void Universe::PlaceMemoryLight1ToMap(LightVisibilityCache1 * light1)
     int stx = light1->WorldX;
     int sty = light1->WorldY;
     int stz = light1->WorldZ;
-    int dir = light1->Dir;
+    Direction dir = light1->Dir;
 
     //// emit or create caches
     LightVisibilityCacheStruct * lightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, dir, light1->MaxLayers);
@@ -772,12 +772,12 @@ void Universe::PlaceMemoryLight6ToMap(LightVisibilityCache6 * light6)
     int stz = light6->WorldZ;
 
     //// emit or create caches
-    LightVisibilityCacheStruct * leftLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 0, light6->LeftLight->MaxLayers);
-    LightVisibilityCacheStruct * rightLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 1, light6->RightLight->MaxLayers);
-    LightVisibilityCacheStruct * topLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 2, light6->TopLight->MaxLayers);
-    LightVisibilityCacheStruct * bottomLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 3, light6->BottomLight->MaxLayers);
-    LightVisibilityCacheStruct * upLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 4, light6->UpLight->MaxLayers);
-    LightVisibilityCacheStruct * downLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 5, light6->DownLight->MaxLayers);
+    LightVisibilityCacheStruct * leftLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Left, light6->LeftLight->MaxLayers);
+    LightVisibilityCacheStruct * rightLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Right, light6->RightLight->MaxLayers);
+    LightVisibilityCacheStruct * topLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Top, light6->TopLight->MaxLayers);
+    LightVisibilityCacheStruct * bottomLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Bottom, light6->BottomLight->MaxLayers);
+    LightVisibilityCacheStruct * upLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Up, light6->UpLight->MaxLayers);
+    LightVisibilityCacheStruct * downLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, Direction::Down, light6->DownLight->MaxLayers);
 
     //// notify cache about lights count
     leftLightCache->LightsHandled += 1;
@@ -806,7 +806,7 @@ void Universe::RemoveMemoryLight1FromMap(LightVisibilityCache1 * light1)
     int & x = light1->WorldX;
     int & y = light1->WorldY;
     int & z = light1->WorldZ;
-    int & dir = light1->Dir;
+    Direction & dir = light1->Dir;
     MyColor & color = light1->Color;
 
     ////

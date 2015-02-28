@@ -2,7 +2,7 @@
 #define MY3DFACE_H
 
 #include "facedirenum.h"
-#include "facefaceenum.h"
+#include "direction.h"
 
 
 namespace dflighting
@@ -17,7 +17,7 @@ public:
     int Y;
     int Z;
 
-    FaceFaceEnum Face;
+    Direction Face;
     FaceDirEnum Dir;
 
     long SourceHits;
@@ -25,7 +25,7 @@ public:
 
     //
     My3DFace();
-    My3DFace(int x, int y, int z, FaceFaceEnum face);
+    My3DFace(int x, int y, int z, Direction face);
 };
 
 }

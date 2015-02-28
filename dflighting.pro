@@ -57,7 +57,6 @@ HEADERS += \
     myintdpoint.h \
     mydoublepoint.h \
     mapcomputecell.h \
-    facefaceenum.h \
     facedirenum.h \
     my3dface.h \
     my3dfacedcell.h \
@@ -78,6 +77,7 @@ HEADERS += \
     walkingagent.h \
     mapcomputecells.h \
     line3dpainter.h \
-    universe.h
+    universe.h \
+    direction.h
 
 

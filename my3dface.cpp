@@ -11,20 +11,20 @@ My3DFace::My3DFace() : X(0), Y(0), Z(0)
 }
 
 
-My3DFace::My3DFace(int x, int y, int z, FaceFaceEnum face) : X(x), Y(y), Z(z), Face(face)
+My3DFace::My3DFace(int x, int y, int z, Direction face) : X(x), Y(y), Z(z), Face(face)
 {
     switch(Face)
     {
-        case FaceFaceEnum::Left:
-        case FaceFaceEnum::Right:
+        case Direction::Left:
+        case Direction::Right:
             Dir = FaceDirEnum::XEq;
             break;
-        case FaceFaceEnum::Top:
-        case FaceFaceEnum::Bottom:
+        case Direction::Top:
+        case Direction::Bottom:
             Dir = FaceDirEnum::YEq;
             break;
-        case FaceFaceEnum::Up:
-        case FaceFaceEnum::Down:
+        case Direction::Up:
+        case Direction::Down:
             Dir = FaceDirEnum::ZEq;
             break;
     }

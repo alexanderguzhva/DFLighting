@@ -32,7 +32,7 @@ LightWorldMap::~LightWorldMap()
 
 
 //
-LightVisibilityCacheStruct * LightWorldMap::CreateLightCache(int x, int y, int z, int dir)
+LightVisibilityCacheStruct * LightWorldMap::CreateLightCache(int x, int y, int z, Direction dir)
 {
     LightVisibilityCacheStruct * light = new LightVisibilityCacheStruct(x, y, z, dir);
     light->CurrentCacheTime = MaxCacheTime;

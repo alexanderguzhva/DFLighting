@@ -26,6 +26,7 @@
 #include "walkingagent.h"
 #include "random.h"
 
+#include "direction.h"
 
 namespace dflighting
 {
@@ -101,10 +102,10 @@ public:
     void LoadDFMap();
 
     //
-    void CreateVisibilityCache(int i, int j, int k, int dir, int maxLayers);
+    void CreateVisibilityCache(int i, int j, int k, Direction dir, int maxLayers);
 
     //
-    LightVisibilityCacheStruct * GetOrCreateVisibilityCachedLight(int stx, int sty, int stz, int dir, int maxLayersToCache);
+    LightVisibilityCacheStruct * GetOrCreateVisibilityCachedLight(int stx, int sty, int stz, Direction dir, int maxLayersToCache);
 
     //
     void TraceVisibilityCached(LightVisibilityCache1 * light1);

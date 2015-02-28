@@ -62,7 +62,7 @@ public:
 
 
     //// 0 = left, 1 = right, 2 = top, 3 = bottom, 4 = up, 5 = down
-    template<int dir>
+    template<Direction dir>
     void TraceVisibility3(int stx, int sty, int stz, const MyIntensity & intensity, int maxLayers, WorldMap * worldMap)
     {
         ////
@@ -143,22 +143,22 @@ public:
             bool shouldBreak = false;
             switch(dir)
             {
-                case 0:
+                case Direction::Left:
                     shouldBreak = (stx - layer - 1 < 0);
                     break;
-                case 1:
+                case Direction::Right:
                     shouldBreak = (stx + layer + 1 >= worldMap->x_size);
                     break;
-                case 2:
+                case Direction::Top:
                     shouldBreak = (sty - layer - 1 < 0);
                     break;
-                case 3:
+                case Direction::Bottom:
                     shouldBreak = (sty + layer + 1 >= worldMap->y_size);
                     break;
-                case 4:
+                case Direction::Up:
                     shouldBreak = (stz + layer + 1 >= worldMap->z_size);
                     break;
-                case 5:
+                case Direction::Down:
                     shouldBreak = (stz - layer - 1 < 0);
                     break;
                 default:
@@ -244,7 +244,7 @@ public:
                         int wtargetz;
                         switch(dir)
                         {
-                            case 0:
+                            case Direction::Left:
                                 //// left
                                 wcurrentx = stx - layer;
                                 wcurrenty = cpy + sty;
@@ -262,7 +262,7 @@ public:
                                 }
 
                                 break;
-                            case 1:
+                            case Direction::Right:
                                 //// right
                                 wcurrentx = stx + layer;
                                 wcurrenty = cpy + sty;
@@ -279,7 +279,7 @@ public:
                                 }
 
                                 break;
-                            case 2:
+                            case Direction::Top:
                                 //// bottom
                                 wcurrentx = cpx + stx;
                                 wcurrenty = sty - layer;
@@ -296,7 +296,7 @@ public:
                                 }
 
                                 break;
-                            case 3:
+                            case Direction::Bottom:
                                 //// down
                                 wcurrentx = cpx + stx;
                                 wcurrenty = sty + layer;
@@ -313,7 +313,7 @@ public:
                                 }
 
                                 break;
-                            case 4:
+                            case Direction::Up:
                                 //// up
                                 wcurrentx = cpx + stx;
                                 wcurrenty = cpy + sty;
@@ -330,7 +330,7 @@ public:
                                 }
 
                                 break;
-                            case 5:
+                            case Direction::Down:
                                 //// down
                                 wcurrentx = cpx + stx;
                                 wcurrenty = cpy + sty;

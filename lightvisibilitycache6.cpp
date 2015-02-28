@@ -7,12 +7,12 @@ namespace dflighting
 LightVisibilityCache6::LightVisibilityCache6(int x, int y, int z, MyColor color)
     : WorldX(x), WorldY(y), WorldZ(z), Color(color)
 {
-    LeftLight = new LightVisibilityCache1(x, y, z, 0, color);
-    RightLight = new LightVisibilityCache1(x, y, z, 1, color);
-    TopLight = new LightVisibilityCache1(x, y, z, 2, color);
-    BottomLight = new LightVisibilityCache1(x, y, z, 3, color);
-    UpLight = new LightVisibilityCache1(x, y, z, 4, color);
-    DownLight = new LightVisibilityCache1(x, y, z, 5, color);
+    LeftLight = new LightVisibilityCache1(x, y, z, Direction::Left, color);
+    RightLight = new LightVisibilityCache1(x, y, z, Direction::Right, color);
+    TopLight = new LightVisibilityCache1(x, y, z, Direction::Top, color);
+    BottomLight = new LightVisibilityCache1(x, y, z, Direction::Bottom, color);
+    UpLight = new LightVisibilityCache1(x, y, z, Direction::Up, color);
+    DownLight = new LightVisibilityCache1(x, y, z, Direction::Down, color);
 }
 
 //

@@ -4,6 +4,8 @@
 #include <functional>
 #include <cstddef>
 
+#include "direction.h"
+
 namespace dflighting
 {
 
@@ -14,11 +16,10 @@ public:
     int X;
     int Y;
     int Z;
-    // Dir: 0..5
-    int Dir;
+    Direction Dir;
 
     MyIntDPoint() { }
-    MyIntDPoint(int x, int y, int z, int dir) : X(x), Y(y), Z(z), Dir(dir)
+    MyIntDPoint(int x, int y, int z, Direction dir) : X(x), Y(y), Z(z), Dir(dir)
     {
     }
 
@@ -37,7 +38,7 @@ struct MyIntDPointHasher
 {
     size_t operator()(const MyIntDPoint & point) const
     {
-        return point.X + 100 * (point.Y + 100 * (point.Z + 6 * point.Dir));
+        return point.X + 100 * (point.Y + 100 * (point.Z + 6 * static_cast<int>(point.Dir)));
     }
 };
 
