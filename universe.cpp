@@ -27,7 +27,7 @@ Universe::Universe() : ComputingCells(80)
 //
 Universe::~Universe()
 {
-
+    ReleaseWalkingAgents();
 }
 
 
@@ -76,7 +76,7 @@ void Universe::LoadDFMap()
         newMat->index = atoi(mats[0].c_str());
         newMat->name = mats[1];
 
-        worldMap->inorganic_material->push_back(newMat);
+        worldMap->inorganic_material.push_back(newMat);
     }
 
     ////
@@ -97,7 +97,7 @@ void Universe::LoadDFMap()
         newMat->index = atoi(mats[0].c_str());
         newMat->name = mats[1];
 
-        worldMap->organic_material->push_back(newMat);
+        worldMap->organic_material.push_back(newMat);
     }
 
 /*
@@ -205,7 +205,7 @@ void Universe::LoadDFMap()
 
                 newTile->Material_Type = 0;
                 newTile->Material_Index = mat;
-                newTile->Mat = (*worldMap->inorganic_material)[mat];
+                newTile->Mat = (worldMap->inorganic_material)[mat];
             }
             else if (data[nextItem] == "m")
             {
@@ -216,7 +216,7 @@ void Universe::LoadDFMap()
 
                 newTile->Material_Type = 0;
                 newTile->Material_Index = mat;
-                newTile->Mat = (*worldMap->inorganic_material)[mat];
+                newTile->Mat = (worldMap->inorganic_material)[mat];
             }
             else if (data[nextItem] == "c")
             {
@@ -225,7 +225,7 @@ void Universe::LoadDFMap()
 
                 newTile->Material_Type = 0;
                 newTile->Material_Index = z0;
-                newTile->Mat = (*worldMap->inorganic_material)[z0];
+                newTile->Mat = (worldMap->inorganic_material)[z0];
             }
 
         }
@@ -1057,6 +1057,16 @@ void Universe::TrackSaplingsNBushes()
                 if (tile->Tile_Type == TileType::SHRUB)
                     Shrubs.push_back(tile);
             }
+}
+
+
+//
+void Universe::ReleaseWalkingAgents()
+{
+    for (auto wa : WalkingAgents)
+        delete wa;
+
+    WalkingAgents.clear();
 }
 
 

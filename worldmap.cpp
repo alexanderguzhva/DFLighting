@@ -16,11 +16,6 @@ WorldMap::WorldMap(int xs, int ys, int zs)
     Tiles = new Tile*[z_size * x_size * y_size];
     for (int i = 0; i < z_size * x_size * y_size; i++)
         Tiles[i] = nullptr;
-
-    //MemoryTiles = new std::vector<Tile*>;
-
-    inorganic_material = new std::vector<Material*>;
-    organic_material = new std::vector<Material*>;
 }
 
 
@@ -40,26 +35,19 @@ WorldMap::~WorldMap()
         Tiles = nullptr;
     }
 
-//        if (MemoryTiles != nullptr)
-//      {
-//        delete MemoryTiles;
-  //      MemoryTiles = nullptr;
-    //}
-    //MemoryTiles.clear();
+    ////
     MemoryTilesDL.Clear();
 
-    if (inorganic_material != nullptr)
-    {
-        delete inorganic_material;
-        inorganic_material = nullptr;
-    }
+    ////
+    for (auto material : inorganic_material)
+        delete material;
+    inorganic_material.clear();
 
-    if (organic_material != nullptr)
-    {
-        delete organic_material;
-        organic_material = nullptr;
-    }
+    for (auto material : organic_material)
+        delete material;
+    organic_material.clear();
 }
+
 
 
 //
