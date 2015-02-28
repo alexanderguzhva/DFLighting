@@ -46,7 +46,6 @@ using namespace std;
 #include "myintdpoint.h"
 
 #include "mydoublepoint.h"
-#include "mydoubleeqpoint.h"
 
 #include "mapcomputecell.h"
 

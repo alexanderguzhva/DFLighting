@@ -10,7 +10,6 @@ SOURCES += main.cpp \
     my3dface.cpp \
     my3dfacedcell.cpp \
     mapcomputecellfacedmap.cpp \
-    mydoubleeqpoint.cpp \
     supportsplitstring.cpp \
     tile.cpp \
     worldmap.cpp \
@@ -61,7 +60,6 @@ HEADERS += \
     my3dface.h \
     my3dfacedcell.h \
     mapcomputecellfacedmap.h \
-    mydoubleeqpoint.h \
     supportsplitstring.h \
     tilestructures.h \
     tile.h \
