@@ -20,11 +20,6 @@ namespace dflighting
 
 class MapComputeCells
 {
-private:
-    //
-    static void line3d(int x1, int y1, int z1, int x2, int y2, int z2,
-                int xmin, int xmax, int ymin, int ymax, int zmin, int zmax,
-                std::vector<MyIntPoint> * vec);
 public:
     MapComputeCell * ComputingCells;
     int NLayers;
