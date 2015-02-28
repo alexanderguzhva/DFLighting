@@ -1,9 +1,5 @@
 //// initial version by alexanderguzhva@gmail.com
 
-//// 0 = disable them
-//// otherwise add walking dwarves (sources of light).
-//// creates great overhead because of naive A* implementation
-#define WALKING_DWARFS_COUNT 2
 
 //// I hate it, but has to implement it
 //#define EGA_COLORS
@@ -78,6 +74,8 @@ using namespace std;
 
 #include "mapcomputecells.h"
 
+#include "universe.h"
+
 using namespace dflighting;
 
 
@@ -89,6 +87,7 @@ const int WorldZSize = 20;
 
 dflighting::EGAColorsMapper EGACMapper;
 
+dflighting::Universe Unv;
 
 
 
@@ -110,10 +109,6 @@ dflighting::EGAColorsMapper EGACMapper;
 
 
 
-//
-int WorldOffsetX;
-int WorldOffsetY;
-int WorldOffsetZ;
 
 
 //
@@ -171,15 +166,13 @@ void ShutDown()
 
 
 //
-int NGenPointsUFEdge = 65536 * 8 * 64;
+//int NGenPointsUFEdge = 65536 * 8 * 64;
 
 
 
 
 
 
-////
-MapComputeCellFacedMap * MapComputeCellsFaced;
 
 
 
@@ -188,271 +181,11 @@ MapComputeCellFacedMap * MapComputeCellsFaced;
 
 
 
-//
-const int MaxMemoryTime = 200;
 
 
 
 
-//
-WorldMap * worldMap;
 
-
-//
-void LoadDFMap()
-{
-    ////
-    std::string filename("stdmap.dfmap");
-    //std::string filename("/home/nop/projects/lighting/dfmaps/withdoors/meow2c.dfmap");
-    //std::string filename("/home/nop/projects/lighting/dfmaps/withdoors/meow4c.dfmap");
-    //std::string filename("/home/nop/projects/lighting/dfmaps/withdoors/meow1c.dfmap");
-    std::ifstream ifile(filename.c_str(), std::ios::in);
-
-    if (!ifile.is_open())
-        return;
-
-    ////
-    string sDimensions;
-    getline(ifile, sDimensions);
-
-    std::vector<std::string> dimensionElements;
-    SupportSplitString::Split(sDimensions, ' ', dimensionElements);
-
-    ////
-    worldMap = new WorldMap(
-                        atoi(dimensionElements[0].c_str()) * 16,
-                        atoi(dimensionElements[1].c_str()) * 16,
-                        atoi(dimensionElements[2].c_str()));
-
-    ////
-    string sInorganicMats;
-    getline(ifile, sInorganicMats);
-
-    int nInorganicMats = atoi(sInorganicMats.c_str());
-
-    for (int i = 0; i < nInorganicMats; i++)
-    {
-        string sInMat;
-        getline(ifile, sInMat);
-
-        std::vector<std::string> mats;
-        SupportSplitString::Split(sInMat, ' ', mats);
-
-        Material * newMat = new Material;
-        newMat->index = atoi(mats[0].c_str());
-        newMat->name = mats[1];
-
-        worldMap->inorganic_material->push_back(newMat);
-    }
-
-    ////
-    string sOrganicMats;
-    getline(ifile, sOrganicMats);
-
-    int nOrganicMats = atoi(sOrganicMats.c_str());
-
-    for (int i = 0; i < nOrganicMats; i++)
-    {
-        string sInMat;
-        getline(ifile, sInMat);
-
-        std::vector<std::string> mats;
-        SupportSplitString::Split(sInMat, ' ', mats);
-
-        Material * newMat = new Material;
-        newMat->index = atoi(mats[0].c_str());
-        newMat->name = mats[1];
-
-        worldMap->organic_material->push_back(newMat);
-    }
-
-/*
-    for (int x = 0; x < worldMap->x_size; x++)
-        for (int y = 0; y < worldMap->y_size; y++)
-            for (int z = 0; z < worldMap->z_size; z++)
-            {
-                Tile * newTile = new Tile;
-                newTile->X = x;
-                newTile->Y = y;
-                newTile->Z = z;
-                worldMap->operator ()(x, y, z) = newTile;
-                newTile->Flow = nullptr;
-                newTile->Tile_Material = TileMaterialType::AIR;
-                newTile->Tile_Type = TileType::EMPTY;
-                newTile->ModifyPassableFlags();
-                newTile->Material_Type = 0;
-                newTile->Material_Index = 1;
-                newTile->Mat = nullptr;
-
-            }
-*/
-
-
-    ////
-    int currentBlockX = 0;
-    int currentBlockY = 0;
-    int currentBlockZ = 0;
-    string sLine;
-    while (ifile.good())
-    {
-        getline(ifile, sLine);
-
-        std::vector<std::string> data;
-        SupportSplitString::Split(sLine, ' ', data);
-
-        if (data.size() == 0)
-            continue;
-
-        if (data[0] == "C")
-        {
-            ////
-            Tile * newTile = new Tile;
-
-            int nextItem = 1;
-            int localX = atoi(data[nextItem].c_str()); nextItem += 1;
-            int localY = atoi(data[nextItem].c_str()); nextItem += 1;
-
-            int globalX = localX + currentBlockX * 16;
-            int globalY = localY + currentBlockY * 16;
-            int globalZ = currentBlockZ;
-
-            newTile->X = globalX;
-            newTile->Y = globalY;
-            newTile->Z = globalZ;
-
-            (*worldMap)(globalX, globalY, globalZ) = newTile;
-
-            ////
-            if (data[nextItem] == "F")
-            {
-                nextItem += 1;
-
-                int liquidType = atoi(data[nextItem].c_str()); nextItem += 1;
-                int flowSize = atoi(data[nextItem].c_str()); nextItem += 1;
-
-                FlowData * flow = new FlowData;
-                flow->Liquid_type = (LiquidType)liquidType;
-                flow->Flow_size = flowSize;
-                newTile->Flow = flow;
-            }
-
-            ////
-            if (data[nextItem] == "T")
-            {
-                nextItem += 1;
-
-                int idt = atoi(data[nextItem].c_str()); nextItem += 1;
-                newTile->Tile_Type = (TileType)idt;
-                int idm = atoi(data[nextItem].c_str()); nextItem += 1;
-                newTile->Tile_Material = (TileMaterialType)idt;
-            }
-
-
-            ////
-            newTile->ModifyPassableFlags();
-
-
-            ////
-            if (nextItem == data.size())
-                continue;
-
-
-            ////
-            if (data[nextItem] == "f")
-            {
-
-            }
-            else if (data[nextItem] == "s")
-            {
-                nextItem += 1;
-
-                int z0 = atoi(data[nextItem].c_str()); nextItem += 1;
-                int mat = atoi(data[nextItem].c_str()); nextItem += 1;
-
-                newTile->Material_Type = 0;
-                newTile->Material_Index = mat;
-                newTile->Mat = (*worldMap->inorganic_material)[mat];
-            }
-            else if (data[nextItem] == "m")
-            {
-                nextItem += 1;
-
-                int z0 = atoi(data[nextItem].c_str()); nextItem += 1;
-                int mat = atoi(data[nextItem].c_str()); nextItem += 1;
-
-                newTile->Material_Type = 0;
-                newTile->Material_Index = mat;
-                newTile->Mat = (*worldMap->inorganic_material)[mat];
-            }
-            else if (data[nextItem] == "c")
-            {
-                int z0 = atoi(data[nextItem].c_str()); nextItem += 1;
-                int z1 = atoi(data[nextItem].c_str()); nextItem += 1;
-
-                newTile->Material_Type = 0;
-                newTile->Material_Index = z0;
-                newTile->Mat = (*worldMap->inorganic_material)[z0];
-            }
-
-        }
-        else if (data[0] == "B")
-        {
-            currentBlockX = atoi(data[1].c_str());
-            currentBlockY = atoi(data[2].c_str());
-            currentBlockZ = atoi(data[3].c_str());
-        }
-        else if (data[0] == "Q")
-        {
-            if (data.size() != 1)
-            {
-                // forget about plants
-                // printf("wow\n");
-            }
-        }
-        else
-        {
-            break;
-        }
-    }
-
-    ////
-    int nBuildings = atoi(sLine.c_str());
-
-    for (int i = 0; i < nBuildings; i++)
-    {
-        getline(ifile, sLine);
-
-        std::vector<std::string> data;
-        SupportSplitString::Split(sLine, ' ', data);
-
-        if (data.size() == 0)
-            continue;
-
-        ////
-        int tx1 = atoi(data[0].c_str());
-        int ty1 = atoi(data[1].c_str());
-        int tz = atoi(data[6].c_str());
-        int tt = atoi(data[9].c_str());
-
-        if (tt == 8)
-        {
-            //// door
-            Tile * tile = worldMap->operator ()(tx1, ty1, tz);
-            if (tile != nullptr)
-            {
-                tile->IsDoor = true;
-                tile->IsDoorOpened = false;
-
-                tile->ModifyPassableFlags();
-            }
-        }
-    }
-
-
-    ////
-    ifile.close();
-
-}
 
 
 //
@@ -469,10 +202,6 @@ void LoadDFPng()
     DFPics = IMG_Load(filename.c_str());
 }
 
-//
-double LastVisibilityProcessTime;
-double ClearVisibilityProcessTime;
-int NVisibilityTimes;
 
 
 
@@ -482,7 +211,6 @@ int NVisibilityTimes;
 
 
 
-MapComputeCells ComputingCells(80);
 
 
 
@@ -490,616 +218,9 @@ MapComputeCells ComputingCells(80);
 
 
 
-////
 
 
-int NTraceVisibilities;
 
-
-
-
-
-
-
-
-
-double TraceVisibilityCachedTime;
-int NTraceVisibilityCachedTime;
-double TraceVisibilityCachedAsMemoryTime;
-int NTraceVisibilityCachedAsMemoryTime;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-LightWorldMap * lightWorldMap;
-
-//
-void CreateVisibilityCache(int i, int j, int k, int dir, int maxLayers)
-{
-    MyIntensity color(1);
-
-    ////
-    switch(dir)
-    {
-        case 0:
-            ComputingCells.TraceVisibility3<0>(i, j, k, color, maxLayers, worldMap);
-            break;
-        case 1:
-            ComputingCells.TraceVisibility3<1>(i, j, k, color, maxLayers, worldMap);
-            break;
-        case 2:
-            ComputingCells.TraceVisibility3<2>(i, j, k, color, maxLayers, worldMap);
-            break;
-        case 3:
-            ComputingCells.TraceVisibility3<3>(i, j, k, color, maxLayers, worldMap);
-            break;
-        case 4:
-            ComputingCells.TraceVisibility3<4>(i, j, k, color, maxLayers, worldMap);
-            break;
-        case 5:
-            ComputingCells.TraceVisibility3<5>(i, j, k, color, maxLayers, worldMap);
-            break;
-    }
-
-
-    //// create cache
-    int lightedTiles = ComputingCells.LightedTilesNext;
-
-    //// I don't want to use vectors as Colorers is a pretty almost read-only thing
-
-    LightVisibilityCacheStruct * lightVis = lightWorldMap->CreateLightCache(i, j, k, dir);
-    //lightVis->Colorers = new std::vector<ColorerCell>;
-    //lightVis->Colorers.reserve(lightedTiles);
-    lightVis->Colorers = new ColorerCell[lightedTiles];
-    lightVis->NColorers = lightedTiles;
-
-    //// initialize layers info
-    int nLayers = ComputingCells.LayersProcessed;
-    lightVis->NLayers = nLayers;
-    //lightVis->ColorersIndicesSum.resize(nLayers);
-    //for (int i = 0; i < nLayers; i++)
-    //    lightVis->ColorersIndicesSum[i] = ComputingCells.LightedTilesSumPerLayer[i];
-    lightVis->ColorersIndicesSum = new int[nLayers];
-    for (int i = 0; i < nLayers; i++)
-        lightVis->ColorersIndicesSum[i] = ComputingCells.LightedTilesSumPerLayer[i];
-
-
-    //// save colorers
-    for (int iCell = 0; iCell < lightedTiles; iCell++ )
-    {
-        //Tile * cell = worldMap->LightedTiles->operator [](iCell);
-        Tile * cell = ComputingCells.LightedTiles[iCell];
-
-        ////
-//        ColorerCell cCell;
-  //      cCell.TargetWorldTile = cell;
-    //    cCell.Intensity = cell->LightValueITraced;
-
-      //  lightVis->Colorers.emplace_back(cCell);
-        //lightVis->Colorers.emplace_back(ColorerCell(cell, cell->LightValueITraced));
-        ColorerCell & colorerCell = lightVis->Colorers[iCell];
-        colorerCell.TargetWorldTile = cell;
-        colorerCell.Intensity = cell->LightValueITraced;
-    }
-
-    //// clear all
-    //ClearVisibility();
-    ComputingCells.ClearITraced();
-}
-
-
-
-//
-LightVisibilityCacheStruct * GetOrCreateVisibilityCachedLight(int stx, int sty, int stz, int dir, int maxLayersToCache)
-{
-    LightVisibilityCacheStruct * light = lightWorldMap->operator ()(stx, sty, stz, dir);
-
-    //// got a cache for this cell?
-    if (light == nullptr)
-    {
-        //// spawn it!!!!
-        CreateVisibilityCache(stx, sty, stz, dir, maxLayersToCache);
-
-        //// reload
-        light = lightWorldMap->operator ()(stx, sty, stz, dir);
-    }
-    /*
-    else
-    {
-        //// cache
-        if (light->NLayers < maxLayersToCache)
-        {
-            //// we've got less layers cached than we need. Let's render additional layers!
-            CreateVisibilityCache(stx, sty, stz, dir, maxLayersToCache);
-        }
-    }
-    */
-
-    return light;
-}
-
-
-
-
-//
-std::unordered_set<LightVisibilityCacheStruct *> LightCachesToRemove;
-
-
-//
-void TraceVisibilityCached(LightVisibilityCache1 * light1)
-{
-    ////
-    struct timeval start, end;
-    gettimeofday(&start, NULL);
-
-
-
-    ////
-    LightVisibilityCacheStruct * lightCache = lightWorldMap->operator ()(light1);
-    MyColor & color = light1->Color;
-
-    //// normal case
-    for (int i = 0; i < lightCache->NColorers; i++)
-    {
-        //// color the tile
-        ColorerCell * cell = &(lightCache->Colorers[i]);
-        Tile * tile = cell->TargetWorldTile;
-        tile->ColorValueI += color * cell->Intensity.I;
-
-        //// this tile is affected by this light
-        //// right now this check is done only for doors
-        if (tile->IsDoor)
-        {
-            tile->LightedByLights.insert(light1);
-            light1->TilesHit.push_back(tile);
-        }
-//        //// lighted tiles
-  //      if (!tile->IsWithinLightedTilesArray)
-    //    {
-      //      tile->IsWithinLightedTilesArray = true;
-        //    worldMap->LightedTiles->push_back(tile);
-        //}
-
-    }
-
-
-
-    ////
-    gettimeofday(&end, NULL);
-    long seconds, useconds;
-
-    seconds  = end.tv_sec  - start.tv_sec;
-    useconds = end.tv_usec - start.tv_usec;
-
-    double mtime = ((seconds) * 1000 + useconds/1000.0);
-
-    TraceVisibilityCachedTime += mtime;
-    NTraceVisibilityCachedTime += 1;
-}
-
-void TraceVisibilityCached6(LightVisibilityCache6 * light6)
-{
-    //// affect intensities
-    TraceVisibilityCached(light6->LeftLight);
-    TraceVisibilityCached(light6->RightLight);
-    TraceVisibilityCached(light6->TopLight);
-    TraceVisibilityCached(light6->BottomLight);
-    TraceVisibilityCached(light6->UpLight);
-    TraceVisibilityCached(light6->DownLight);
-}
-
-//
-void PlaceLight1ToMap(LightVisibilityCache1 * light1)
-{
-    int stx = light1->WorldX;
-    int sty = light1->WorldY;
-    int stz = light1->WorldZ;
-    int dir = light1->Dir;
-
-    //// emit or create caches
-    LightVisibilityCacheStruct * lightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, dir, light1->MaxLayers);
-
-    //// do not remove this lightcache from the cache
-    LightCachesToRemove.erase(lightCache);
-
-
-    //// notify cache about lights count
-    lightCache->LightsHandled += 1;
-
-    //// affect intensities
-    TraceVisibilityCached(light1);
-}
-
-//
-void PlaceLight6ToMap(LightVisibilityCache6 * light6)
-{
-    int stx = light6->WorldX;
-    int sty = light6->WorldY;
-    int stz = light6->WorldZ;
-
-    //// emit or create caches
-    LightVisibilityCacheStruct * leftLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 0, light6->LeftLight->MaxLayers);
-    LightVisibilityCacheStruct * rightLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 1, light6->RightLight->MaxLayers);
-    LightVisibilityCacheStruct * topLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 2, light6->TopLight->MaxLayers);
-    LightVisibilityCacheStruct * bottomLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 3, light6->BottomLight->MaxLayers);
-    LightVisibilityCacheStruct * upLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 4, light6->UpLight->MaxLayers);
-    LightVisibilityCacheStruct * downLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 5, light6->DownLight->MaxLayers);
-
-    //// notify cache about lights count
-    leftLightCache->LightsHandled += 1;
-    rightLightCache->LightsHandled += 1;
-    topLightCache->LightsHandled += 1;
-    bottomLightCache->LightsHandled += 1;
-    upLightCache->LightsHandled += 1;
-    downLightCache->LightsHandled += 1;
-
-    LightVisibilityCacheStruct *lc2 = lightWorldMap->operator ()(light6->TopLight);
-
-    //// affect intensities
-    TraceVisibilityCached(light6->LeftLight);
-    TraceVisibilityCached(light6->RightLight);
-    TraceVisibilityCached(light6->TopLight);
-    TraceVisibilityCached(light6->BottomLight);
-    TraceVisibilityCached(light6->UpLight);
-    TraceVisibilityCached(light6->DownLight);
-}
-
-
-
-
-
-
-//
-void RemoveLight1FromMap(LightVisibilityCache1 * light1)
-{
-    int & x = light1->WorldX;
-    int & y = light1->WorldY;
-    int & z = light1->WorldZ;
-    int & dir = light1->Dir;
-    MyColor & color = light1->Color;
-
-    ////
-    LightVisibilityCacheStruct * lightCache = lightWorldMap->operator ()(light1);
-
-    lightCache->LightsHandled -= 1;
-
-    bool shouldRemoveCache = (lightCache->LightsHandled == 0);
-
-    //// clear colorers
-    for (int i = 0; i < lightCache->NColorers; i++)
-    {
-        //// tile
-        ColorerCell * cell = &(lightCache->Colorers[i]);
-
-        Tile * tile;
-        tile = cell->TargetWorldTile;
-
-        //// remove intensity
-        tile->ColorValueI -= color * cell->Intensity.I;
-
-        /*
-        //// remove light from this tile. modify it later
-        for (vector<LightVisibilityCache1*>::iterator iter = tile->LightedByLights.begin(); iter != tile->LightedByLights.end(); iter++)
-        {
-            if (*iter == light1)
-            {
-                if (tile->LightedByLights.size() == 1)
-                {
-                    tile->LightedByLights.clear();
-                }
-                else
-                {
-                    vector<LightVisibilityCache1*>::iterator iterLast = tile->LightedByLights.end() - 1;
-                    *iter = *iterLast;
-                    tile->LightedByLights.erase(iterLast);
-                }
-                break;
-            }
-        }
-        */
-    }
-
-    for (Tile * tile : light1->TilesHit)
-    {
-        tile->LightedByLights.erase(light1);
-        tile->PotentialLightCaches.insert(light1->GetIntDPoint());
-
-        lightCache->PotentialTiles.insert(tile);
-    }
-
-
-    light1->TilesHit.clear();
-
-    ////
-    if (shouldRemoveCache)
-        LightCachesToRemove.insert(lightCache);
-}
-
-
-
-//
-void RemoveLight6FromMap(LightVisibilityCache6 * light6)
-{
-    RemoveLight1FromMap(light6->LeftLight);
-    RemoveLight1FromMap(light6->RightLight);
-    RemoveLight1FromMap(light6->TopLight);
-    RemoveLight1FromMap(light6->BottomLight);
-    RemoveLight1FromMap(light6->UpLight);
-    RemoveLight1FromMap(light6->DownLight);
-}
-
-
-//
-void ChangeLight1Color(LightVisibilityCache1 * light1, MyColor & newColor)
-{
-    ////
-    LightVisibilityCacheStruct * lightCache = lightWorldMap->operator ()(light1);
-    MyColor color = light1->Color - newColor;
-
-    //// clear colorers
-    for (int i = 0; i < lightCache->NColorers; i++)
-    {
-        //// tile
-        ColorerCell * cell = &(lightCache->Colorers[i]);
-
-        Tile * tile;
-        tile = cell->TargetWorldTile;
-
-        ////
-        auto intensity = cell->Intensity.I;
-
-        //// remove intensity
-        tile->ColorValueI -= color * intensity;
-    }
-
-    light1->ChangeColor(newColor);
-}
-
-//
-void ChangeLight6Color(LightVisibilityCache6 * light6, MyColor & newColor)
-{
-    ChangeLight1Color(light6->LeftLight, newColor);
-    ChangeLight1Color(light6->RightLight, newColor);
-    ChangeLight1Color(light6->TopLight, newColor);
-    ChangeLight1Color(light6->BottomLight, newColor);
-    ChangeLight1Color(light6->UpLight, newColor);
-    ChangeLight1Color(light6->DownLight, newColor);
-
-    light6->Color = newColor;
-}
-
-
-
-
-
-//
-void TraceVisibilityCachedAsMemory(LightVisibilityCache1 * light1, bool addToLightedByMemoryLights)
-{
-    ////
-    struct timeval start, end;
-    gettimeofday(&start, NULL);
-
-
-    ////
-    LightVisibilityCacheStruct * lightCache = lightWorldMap->operator ()(light1);
-
-    ////
-    int maxLayer = light1->MaxLayers;
-    int amountOfColorersToDealWith;
-    if (lightCache->NLayers <= maxLayer)
-    {
-        amountOfColorersToDealWith = lightCache->NColorers;
-    }
-    else
-    {
-        amountOfColorersToDealWith = lightCache->ColorersIndicesSum[maxLayer];
-    }
-
-    ////
-    for (int i = 0; i < amountOfColorersToDealWith; i++)
-    {
-        //// color the tile
-        ColorerCell * cell = &(lightCache->Colorers[i]);
-        Tile * tile = cell->TargetWorldTile;
-
-        if (addToLightedByMemoryLights)
-        {
-            if (tile->IsDoor)
-            {
-                tile->LightedByMemoryLights.insert(light1);
-                light1->MTilesHit.push_back(tile);
-            }
-        }
-
-        //// lighted tiles
-        if (!tile->IsMemoryAffected)
-        {
-            tile->IsMemoryAffected = true;
-            tile->MemoryAmount = MaxMemoryTime;
-
-
-            //worldMap->MemoryTiles.push_back(tile);
-            int dlIndex = worldMap->MemoryTilesDL.AddItem(tile);
-            tile->DLIndex = dlIndex;
-
-            tile->InitializeCopyForMemory();
-        }
-        else
-        {
-            tile->MemoryAmount = MaxMemoryTime;
-        }
-
-        tile->ModifyCopyForMemory();
-    }
-
-
-    ////
-    gettimeofday(&end, NULL);
-    long seconds, useconds;
-
-    seconds  = end.tv_sec  - start.tv_sec;
-    useconds = end.tv_usec - start.tv_usec;
-
-    double mtime = ((seconds) * 1000 + useconds/1000.0);
-
-    TraceVisibilityCachedAsMemoryTime += mtime;
-    NTraceVisibilityCachedAsMemoryTime += 1;
-
-}
-
-void TraceVisibilityCached6AsMemory(LightVisibilityCache6 * light6, bool addToLightedByMemoryLights)
-{
-    //// affect intensities
-    TraceVisibilityCachedAsMemory(light6->LeftLight, addToLightedByMemoryLights);
-    TraceVisibilityCachedAsMemory(light6->RightLight, addToLightedByMemoryLights);
-    TraceVisibilityCachedAsMemory(light6->TopLight, addToLightedByMemoryLights);
-    TraceVisibilityCachedAsMemory(light6->BottomLight, addToLightedByMemoryLights);
-    TraceVisibilityCachedAsMemory(light6->UpLight, addToLightedByMemoryLights);
-    TraceVisibilityCachedAsMemory(light6->DownLight, addToLightedByMemoryLights);
-}
-
-
-
-//
-void PlaceMemoryLight1ToMap(LightVisibilityCache1 * light1)
-{
-    int stx = light1->WorldX;
-    int sty = light1->WorldY;
-    int stz = light1->WorldZ;
-    int dir = light1->Dir;
-
-    //// emit or create caches
-    LightVisibilityCacheStruct * lightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, dir, light1->MaxLayers);
-
-    //// do not remove this lightcache from the cache
-    LightCachesToRemove.erase(lightCache);
-
-
-    //// notify cache about lights count
-    lightCache->LightsHandled += 1;
-
-    //// affect intensities
-    TraceVisibilityCachedAsMemory(light1, true);
-}
-
-//
-void PlaceMemoryLight6ToMap(LightVisibilityCache6 * light6)
-{
-    int stx = light6->WorldX;
-    int sty = light6->WorldY;
-    int stz = light6->WorldZ;
-
-    //// emit or create caches
-    LightVisibilityCacheStruct * leftLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 0, light6->LeftLight->MaxLayers);
-    LightVisibilityCacheStruct * rightLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 1, light6->RightLight->MaxLayers);
-    LightVisibilityCacheStruct * topLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 2, light6->TopLight->MaxLayers);
-    LightVisibilityCacheStruct * bottomLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 3, light6->BottomLight->MaxLayers);
-    LightVisibilityCacheStruct * upLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 4, light6->UpLight->MaxLayers);
-    LightVisibilityCacheStruct * downLightCache = GetOrCreateVisibilityCachedLight(stx, sty, stz, 5, light6->DownLight->MaxLayers);
-
-    //// notify cache about lights count
-    leftLightCache->LightsHandled += 1;
-    rightLightCache->LightsHandled += 1;
-    topLightCache->LightsHandled += 1;
-    bottomLightCache->LightsHandled += 1;
-    upLightCache->LightsHandled += 1;
-    downLightCache->LightsHandled += 1;
-
-    //LightVisibilityCacheStruct *lc2 = lightWorldMap->operator ()(light6->TopLight);
-
-    //// affect intensities
-//    TraceVisibilityCachedAsMemory(light6->LeftLight, true);
-//    TraceVisibilityCachedAsMemory(light6->RightLight, true);
-//    TraceVisibilityCachedAsMemory(light6->TopLight, true);
-//    TraceVisibilityCachedAsMemory(light6->BottomLight, true);
-//    TraceVisibilityCachedAsMemory(light6->UpLight, true);
-//    TraceVisibilityCachedAsMemory(light6->DownLight, true);
-    TraceVisibilityCached6AsMemory(light6, true);
-}
-
-
-//
-void RemoveMemoryLight1FromMap(LightVisibilityCache1 * light1)
-{
-    int & x = light1->WorldX;
-    int & y = light1->WorldY;
-    int & z = light1->WorldZ;
-    int & dir = light1->Dir;
-    MyColor & color = light1->Color;
-
-    ////
-    LightVisibilityCacheStruct * lightCache = lightWorldMap->operator ()(light1);
-
-    lightCache->LightsHandled -= 1;
-
-    bool shouldRemoveCache = (lightCache->LightsHandled == 0);
-
-    //// clear colorers
-    for (int i = 0; i < lightCache->NColorers; i++)
-    {
-        //// tile
-        ColorerCell * cell = &(lightCache->Colorers[i]);
-
-        Tile * tile = cell->TargetWorldTile;
-
-        /*
-        //// remove light from this tile. modify it later
-        for (vector<LightVisibilityCache1*>::iterator iter = tile->LightedByMemoryLights.begin(); iter != tile->LightedByMemoryLights.end(); iter++)
-        {
-            if (*iter == light1)
-            {
-                if (tile->LightedByMemoryLights.size() == 1)
-                {
-                    tile->LightedByMemoryLights.clear();
-                }
-                else
-                {
-                    vector<LightVisibilityCache1*>::iterator iterLast = tile->LightedByMemoryLights.end() - 1;
-                    *iter = *iterLast;
-                    tile->LightedByMemoryLights.erase(iterLast);
-                }
-                break;
-            }
-        }*/
-    }
-
-    for (Tile * tile : light1->MTilesHit)
-    {
-        tile->LightedByMemoryLights.erase(light1);
-        tile->PotentialLightCaches.insert(light1->GetIntDPoint());
-        lightCache->PotentialTiles.insert(tile);
-    }
-
-    light1->MTilesHit.clear();
-
-    ////
-    if (shouldRemoveCache)
-        LightCachesToRemove.insert(lightCache);
-}
-
-
-//
-void RemoveMemoryLight6FromMap(LightVisibilityCache6 * light6)
-{
-    RemoveMemoryLight1FromMap(light6->LeftLight);
-    RemoveMemoryLight1FromMap(light6->RightLight);
-    RemoveMemoryLight1FromMap(light6->TopLight);
-    RemoveMemoryLight1FromMap(light6->BottomLight);
-    RemoveMemoryLight1FromMap(light6->UpLight);
-    RemoveMemoryLight1FromMap(light6->DownLight);
-}
 
 
 
@@ -1197,30 +318,9 @@ void ClearCache(int x, int y, int z)
 
 
 
-//
-std::vector<Tile*> Saplings;
-std::vector<Tile*> Shrubs;
 
 
-//
-void TrackSaplingsNBushes()
-{
-    for (int i = 30; i <= 150; i++)
-        for (int j = 30; j <= 150; j++)
-            for (int k = 38; k <= 42; k++)
-            {
-                Tile * tile = (*worldMap)(i, j, k);
-                if (tile == nullptr)
-                    continue;
 
-                ////
-                if (tile->Tile_Type == TileType::SAPLING)
-                    Saplings.push_back(tile);
-
-                if (tile->Tile_Type == TileType::SHRUB)
-                    Shrubs.push_back(tile);
-            }
-}
 
 /*
 //
@@ -1511,62 +611,6 @@ void RemoveLight(int x, int y, int z)
 
 
 
-//
-void ChangeDoor(int x, int y, int z)
-{
-    Tile * tile = (*worldMap)(x, y, z);
-
-    if (!tile->IsDoor)
-        return;
-
-    std::vector<LightVisibilityCache1*> uset(tile->LightedByLights.begin(), tile->LightedByLights.end());
-    std::vector<LightVisibilityCache1*> usetm(tile->LightedByMemoryLights.begin(), tile->LightedByMemoryLights.end());
-
-    ////
-    LightCachesToRemove.clear();
-
-    ////
-    for (auto light1 : uset)
-        RemoveLight1FromMap(light1);
-    for (auto light1 : usetm)
-        RemoveMemoryLight1FromMap(light1);
-
-    tile->IsDoorOpened = !tile->IsDoorOpened;
-    tile->ModifyPassableFlags();
-
-    if (tile->IsMemoryAffected)
-        tile->ModifyCopyForMemory();
-
-    //// remove all caches associated with this tile
-//    for (auto lightCache : tile->LightedByCaches)
-  //      LightCachesToRemove.insert(lightCache);
-    //tile->LightedByCaches.clear();
-
-    // remove all potential light caches
-    std::vector<MyIntDPoint> ptset(tile->PotentialLightCaches.begin(), tile->PotentialLightCaches.end());
-    for (MyIntDPoint point : ptset)
-    {
-        LightVisibilityCacheStruct * potentialCache = lightWorldMap->operator ()(point);
-        if (potentialCache != nullptr)
-        {
-            //// kill it
-            lightWorldMap->DeleteLightCache(potentialCache);
-        }
-    }
-
-    //// remove all removed caches
-//    for(auto lightCache : LightCachesToRemove)
-  //      lightWorldMap->DeleteLightCache(lightCache);
-
-//    if (tile->IsDoorOpened)
-    {
-        for (auto light1 : usetm)
-            PlaceMemoryLight1ToMap(light1);
-        for (auto light1 : uset)
-            PlaceLight1ToMap(light1);
-    }
-}
-
 
 
 
@@ -1584,26 +628,8 @@ void ChangeDoor(int x, int y, int z)
 
 
 //
-std::vector<Tile *> PathfindableCells;
 
-void TracePathfindableCells()
-{
-    for (int i = 0; i < worldMap->x_size; i++)
-    {
-        for (int j = 0; j < worldMap->y_size; j++)
-        {
-            for (int k = 0; k < worldMap->z_size; k++)
-            {
-                Tile * tile = (*worldMap)(i, j, k);
-                if (tile == nullptr)
-                    continue;
 
-                if (tile->IsPathfinded)
-                    PathfindableCells.push_back(tile);
-            }
-        }
-    }
-}
 
 
 ////
@@ -1617,7 +643,7 @@ void LoadDFDwarvesPng()
 
 
 //
-std::vector<std::pair<int, int> > DFDwarvesAllowedCells;
+
 void LoadDFDwarvesSetBannedCells()
 {
     std::vector<std::pair<int, int> > DFDwarvesBannedCells;
@@ -1673,7 +699,7 @@ void LoadDFDwarvesSetBannedCells()
             if (!allowed)
                 continue;
 
-            DFDwarvesAllowedCells.push_back(std::pair<int, int>(j, i));
+            Unv.DFDwarvesAllowedCells.push_back(std::pair<int, int>(j, i));
         }
     }
 }
@@ -1681,88 +707,6 @@ void LoadDFDwarvesSetBannedCells()
 
 
 
-//
-std::vector<WalkingAgent *> WalkingAgents;
-
-//int WalkingRandseed;
-dflighting::Random walkingRng;
-
-////
-void CreateWalkingAgents()
-{
-    for (int i = 0; i < WALKING_DWARFS_COUNT; i++)
-    {
-        auto wa = new WalkingAgent();
-
-        //// create a starting point
-        //int id = myrandom(&WalkingRandseed, PathfindableCells.size());
-        int id = walkingRng.next(PathfindableCells.size());
-        int x = PathfindableCells[id]->X;
-        int y = PathfindableCells[id]->Y;
-        int z = PathfindableCells[id]->Z;
-
-        wa->X = x;
-        wa->Y = y;
-        wa->Z = z;
-
-        //// random picture
-        //int pic = myrandom(&WalkingRandseed, DFDwarvesAllowedCells.size());
-        int pic = walkingRng.next(DFDwarvesAllowedCells.size());
-        wa->XPicture = DFDwarvesAllowedCells[pic].first;
-        wa->YPicture = DFDwarvesAllowedCells[pic].second;
-
-        WalkingAgents.push_back(wa);
-    }
-}
-
-
-void IterateAgent(WalkingAgent * wa)
-{
-//    return;
-    bool generateNewPath = false;
-    if (wa->WalkingPath != nullptr)
-    {
-        wa->CurrentTile++;
-        if (wa->CurrentTile == wa->WalkingPath->size())
-        {
-            //// reached the end
-            generateNewPath = true;
-        }
-        else
-        {
-            wa->X = wa->WalkingPath->operator [](wa->CurrentTile)->X;
-            wa->Y = wa->WalkingPath->operator [](wa->CurrentTile)->Y;
-            wa->Z = wa->WalkingPath->operator [](wa->CurrentTile)->Z;
-        }
-    }
-    else
-    {
-        generateNewPath = true;
-    }
-
-    ////
-    if (!generateNewPath)
-        return;
-
-    ////
-    if (wa->WalkingPath != nullptr)
-        delete wa->WalkingPath;
-
-    //// select random destination
-    //int id = myrandom(&WalkingRandseed, PathfindableCells.size());
-    int id = walkingRng.next(PathfindableCells.size());
-    int x = PathfindableCells[id]->X;
-    int y = PathfindableCells[id]->Y;
-    int z = PathfindableCells[id]->Z;
-
-
-    auto newPath = AStarPathFinder::FindPath(
-                worldMap->operator ()(wa->X, wa->Y, wa->Z),
-                PathfindableCells[id]);
-
-    wa->WalkingPath = newPath;
-    wa->CurrentTile = 0;
-}
 
 
 
@@ -1775,8 +719,11 @@ void IterateAgent(WalkingAgent * wa)
 
 
 
-LightVisibilityCache6 * MyLight;
-LightVisibilityCache6 * MyLightV;
+
+
+
+
+
 
 
 
@@ -1852,8 +799,7 @@ void ProcessKeyDown(SDL_Event * sdlEvent)
 
         case SDLK_i:
             ////
-            for (auto wa : WalkingAgents)
-                IterateAgent(wa);
+            Unv.IterateAgents();
             break;
         case SDLK_SPACE:
             break;
@@ -1866,8 +812,8 @@ void ProcessKeyDown(SDL_Event * sdlEvent)
     if (recalculateLighting)
     {
         ////
-        LastVisibilityProcessTime = 0;
-        NVisibilityTimes = 0;
+        Unv.LastVisibilityProcessTime = 0;
+        Unv.NVisibilityTimes = 0;
 
 
         ////
@@ -1875,20 +821,20 @@ void ProcessKeyDown(SDL_Event * sdlEvent)
 
   //      RenderPointSourceCached(WorldOffsetX, WorldOffsetY, WorldOffsetZ, -20000);
 
-        RemoveMemoryLight6FromMap(MyLight);
-        delete MyLight;
-        RemoveLight6FromMap(MyLightV);
-        delete MyLightV;
+        Unv.RemoveMemoryLight6FromMap(Unv.MyLight);
+        delete Unv.MyLight;
+        Unv.RemoveLight6FromMap(Unv.MyLightV);
+        delete Unv.MyLightV;
 
-        WorldOffsetX += offsetX;
-        WorldOffsetY += offsetY;
-        WorldOffsetZ += offsetZ;
+        Unv.WorldOffsetX += offsetX;
+        Unv.WorldOffsetY += offsetY;
+        Unv.WorldOffsetZ += offsetZ;
 
-        MyLight = new LightVisibilityCache6(WorldOffsetX, WorldOffsetY, WorldOffsetZ, MyColor(50000, 50000, 50000));
-        PlaceMemoryLight6ToMap(MyLight);
+        Unv.MyLight = new LightVisibilityCache6(Unv.WorldOffsetX, Unv.WorldOffsetY, Unv.WorldOffsetZ, MyColor(50000, 50000, 50000));
+        Unv.PlaceMemoryLight6ToMap(Unv.MyLight);
 
-        MyLightV = new LightVisibilityCache6(WorldOffsetX, WorldOffsetY, WorldOffsetZ, MyColor(10000, 10000, 10000));
-        PlaceLight6ToMap(MyLightV);
+        Unv.MyLightV = new LightVisibilityCache6(Unv.WorldOffsetX, Unv.WorldOffsetY, Unv.WorldOffsetZ, MyColor(10000, 10000, 10000));
+        Unv.PlaceLight6ToMap(Unv.MyLightV);
 
   //      RenderPointSourceCached(WorldOffsetX, WorldOffsetY, WorldOffsetZ, +20000);
 
@@ -1922,13 +868,13 @@ void ProcessMouseButtonDown(SDL_Event * sdlEvent)
     int centerx = nx / 2;
     int centery = ny / 2;
 
-    int cpx = - centerx + WorldOffsetX + sdlEvent->motion.x / xCellSize;
-    int cpy = - centery + WorldOffsetY + sdlEvent->motion.y / yCellSize;
-    int cpz = WorldOffsetZ;
+    int cpx = - centerx + Unv.WorldOffsetX + sdlEvent->motion.x / xCellSize;
+    int cpy = - centery + Unv.WorldOffsetY + sdlEvent->motion.y / yCellSize;
+    int cpz = Unv.WorldOffsetZ;
 
 //    LightCachesToRemove.clear();
 
-    ChangeDoor(cpx, cpy, cpz);
+    Unv.ChangeDoor(cpx, cpy, cpz);
 
 //    for(auto light : LightCachesToRemove)
   //      lightWorldMap->DeleteLight(light);
@@ -2102,9 +1048,9 @@ void Render()
     {
         for (int iy = 0; iy < ny; iy++)
         {
-            int cpx = ix - centerx + WorldOffsetX;
-            int cpy = iy - centery + WorldOffsetY;
-            int cpz = WorldOffsetZ;
+            int cpx = ix - centerx + Unv.WorldOffsetX;
+            int cpy = iy - centery + Unv.WorldOffsetY;
+            int cpz = Unv.WorldOffsetZ;
 
             ////
             int imagex = 0;
@@ -2133,11 +1079,11 @@ void Render()
 
             int memoryAmount = 0;
 
-            if (cpx >= 0 && cpx < worldMap->x_size &&
-                cpy >= 0 && cpy < worldMap->y_size &&
-                cpz >= 0 && cpz < worldMap->z_size)
+            if (cpx >= 0 && cpx < Unv.worldMap->x_size &&
+                cpy >= 0 && cpy < Unv.worldMap->y_size &&
+                cpz >= 0 && cpz < Unv.worldMap->z_size)
             {
-                tile = (*worldMap)(cpx, cpy, cpz);
+                tile = (*(Unv.worldMap))(cpx, cpy, cpz);
                 if (tile != nullptr)
                 {
                     Tile2ImageXY(tile, &imagex, &imagey);
@@ -2156,12 +1102,12 @@ void Render()
                 }
 
                 ////
-                lightCached0 = (lightWorldMap->operator ()(cpx, cpy, cpz, 0) != nullptr);
-                lightCached1 = (lightWorldMap->operator ()(cpx, cpy, cpz, 1) != nullptr);
-                lightCached2 = (lightWorldMap->operator ()(cpx, cpy, cpz, 2) != nullptr);
-                lightCached3 = (lightWorldMap->operator ()(cpx, cpy, cpz, 3) != nullptr);
-                lightCached4 = (lightWorldMap->operator ()(cpx, cpy, cpz, 4) != nullptr);
-                lightCached5 = (lightWorldMap->operator ()(cpx, cpy, cpz, 5) != nullptr);
+                lightCached0 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 0) != nullptr);
+                lightCached1 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 1) != nullptr);
+                lightCached2 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 2) != nullptr);
+                lightCached3 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 3) != nullptr);
+                lightCached4 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 4) != nullptr);
+                lightCached5 = (Unv.lightWorldMap->operator ()(cpx, cpy, cpz, 5) != nullptr);
             }
 
 
@@ -2463,7 +1409,7 @@ void Render()
 */
 
             //// selector
-            if (cpx == WorldOffsetX && cpy == WorldOffsetY && cpz == WorldOffsetZ)
+            if (cpx == Unv.WorldOffsetX && cpy == Unv.WorldOffsetY && cpz == Unv.WorldOffsetZ)
             {
                 SDL_Rect destRect;
                 destRect.x = ix * xCellSize;
@@ -2497,13 +1443,13 @@ void Render()
     //boxRGBA(Surf_Display, 100, 100, 200, 200, 255, 0, 0, 63);
 
     // draw dwarves
-    int minx = 0 - centerx + WorldOffsetX;
-    int miny = 0 - centery + WorldOffsetY;
-    int maxx = nx - 1 - centerx + WorldOffsetX;
-    int maxy = ny - 1 - centery + WorldOffsetY;
-    int cz = WorldOffsetZ;
+    int minx = 0 - centerx + Unv.WorldOffsetX;
+    int miny = 0 - centery + Unv.WorldOffsetY;
+    int maxx = nx - 1 - centerx + Unv.WorldOffsetX;
+    int maxy = ny - 1 - centery + Unv.WorldOffsetY;
+    int cz = Unv.WorldOffsetZ;
 
-    for (auto wa : WalkingAgents)
+    for (auto wa : Unv.WalkingAgents)
     {
         ////
         if (wa->Z != cz) continue;
@@ -2512,7 +1458,7 @@ void Render()
             continue;
 
         MyColor lightlevelI;
-        Tile * tile = (*worldMap)(wa->X, wa->Y, wa->Z);
+        Tile * tile = (*(Unv.worldMap))(wa->X, wa->Y, wa->Z);
         if (tile != nullptr)
             lightlevelI = tile->ColorValueI;
 
@@ -2583,16 +1529,16 @@ void Render()
 void generateLightCacheFile()
 {
     ////
-    worldMap = new WorldMap(200, 200, 200);
+    Unv.worldMap = new WorldMap(200, 200, 200);
 
 
     ///
-    lightWorldMap = new LightWorldMap(200, 200, 200);
+    Unv.lightWorldMap = new LightWorldMap(200, 200, 200);
 
     // render light
     LightVisibilityCache1 lc(90, 90, 90, 0, MyColor(0, 0, 0));
     lc.MaxLayers = GENERATE_RENDER_DEPTH;
-    PlaceLight1ToMap(&lc);
+    Unv.PlaceLight1ToMap(&lc);
 
     ////
     int depth = GENERATE_RENDER_DEPTH;
@@ -2642,8 +1588,8 @@ int main(int argc, char** argv)
 
 
     ////
-    LoadDFMap();
-    worldMap->CreateNeighbours();
+    Unv.LoadDFMap();
+    Unv.worldMap->CreateNeighbours();
 
     LoadDFPng();
 
@@ -2674,9 +1620,9 @@ int main(int argc, char** argv)
   //  WorldOffsetY = 95;
 //    WorldOffsetZ = 42;
 
-    WorldOffsetX = 109;
-    WorldOffsetY = 79;
-    WorldOffsetZ = 155;
+    Unv.WorldOffsetX = 109;
+    Unv.WorldOffsetY = 79;
+    Unv.WorldOffsetZ = 155;
 
 
     //return 0;
@@ -2711,11 +1657,11 @@ int main(int argc, char** argv)
     //inputCCsFile.open("/home/nop/projects/lighting/ccs/ok/ccs80", ios_base::binary);
     //inputCCsFile.open("/home/nop/projects/lighting/ccs/ccsM40", ios_base::binary);
     inputCCsFile.open("lightmap", ios_base::binary);
-    ComputingCells.LoadFromStream(&inputCCsFile);
+    Unv.ComputingCells.LoadFromStream(&inputCCsFile);
     inputCCsFile.close();
 
     ///
-    lightWorldMap = new LightWorldMap(worldMap->x_size, worldMap->y_size, worldMap->z_size);
+    Unv.lightWorldMap = new LightWorldMap(Unv.worldMap->x_size, Unv.worldMap->y_size, Unv.worldMap->z_size);
 
 /*
  * for generating max % of light scattered
@@ -2767,8 +1713,8 @@ int main(int argc, char** argv)
     //Tile * finalTile = worldMap->operator ()(75, 165, 25);
 
 
-    Tile * initialTile = worldMap->operator ()(110, 80, 155);
-    Tile * finalTile = worldMap->operator ()(58, 70, 109);
+    Tile * initialTile = Unv.worldMap->operator ()(110, 80, 155);
+    Tile * finalTile = Unv.worldMap->operator ()(58, 70, 109);
 
     auto renderPath = AStarPathFinder::FindPath(initialTile, finalTile);
 
@@ -2784,7 +1730,7 @@ int main(int argc, char** argv)
     printf("Tracing pathfindable cells took %f msec\n", mtimeP);
 
     //// trace pathable cells
-    TracePathfindableCells();
+    Unv.TracePathfindableCells();
 
     if (renderPath != nullptr)
         delete renderPath;
@@ -2792,12 +1738,12 @@ int main(int argc, char** argv)
 
 
     //WalkingRandseed = 13123121;
-    walkingRng = dflighting::Random(13123121);
-    CreateWalkingAgents();
+    Unv.walkingRng = dflighting::Random(13123121);
+    Unv.CreateWalkingAgents();
 
     ////
-    LastVisibilityProcessTime = 0;
-    NVisibilityTimes = 0;
+    Unv.LastVisibilityProcessTime = 0;
+    Unv.NVisibilityTimes = 0;
 
     /*
     double vs;
@@ -2813,11 +1759,11 @@ int main(int argc, char** argv)
     cout << vs << std::endl;
     */
 
-    TrackSaplingsNBushes();
+    Unv.TrackSaplingsNBushes();
 
     //RenderRecalcVisibility();
     ////
-    NTraceVisibilities = 0;
+    Unv.NTraceVisibilities = 0;
 
     struct timeval start, end;
     gettimeofday(&start, NULL);
@@ -2835,10 +1781,10 @@ int main(int argc, char** argv)
     double mtime = ((seconds) * 1000 + useconds/1000.0);
 
     printf("Creating cache took %f msec\n", mtime);
-    printf("Average %f msec per TraceVisibility2\n", mtime / NTraceVisibilities);
+    printf("Average %f msec per TraceVisibility2\n", mtime / Unv.NTraceVisibilities);
 
-    LastVisibilityProcessTime = 0;
-    ClearVisibilityProcessTime = 0;
+    Unv.LastVisibilityProcessTime = 0;
+    Unv.ClearVisibilityProcessTime = 0;
 
 
 //    RenderRecalcVisibilityCached(1.0f);
@@ -2856,11 +1802,11 @@ int main(int argc, char** argv)
 
     //
     long nEmptyCells = 0;
-    for (int i = 0; i < worldMap->x_size; i++)
-        for (int j = 0; j < worldMap->y_size; j++)
-            for (int k = 0; k < worldMap->z_size; k++)
+    for (int i = 0; i < Unv.worldMap->x_size; i++)
+        for (int j = 0; j < Unv.worldMap->y_size; j++)
+            for (int k = 0; k < Unv.worldMap->z_size; k++)
             {
-                Tile * tile = (*worldMap)(i, j, k);
+                Tile * tile = (*(Unv.worldMap))(i, j, k);
                 if (tile == nullptr)
                     continue;
 
@@ -2873,45 +1819,45 @@ int main(int argc, char** argv)
 
     //// place static lights
     LightVisibilityCache6 light6_1(110, 72, 155, MyColor(40000, 10000, 10000));
-    PlaceLight6ToMap(&light6_1);
+    Unv.PlaceLight6ToMap(&light6_1);
 
     LightVisibilityCache6 light6_2(110, 88, 155, MyColor(10000, 10000, 40000));
-    PlaceLight6ToMap(&light6_2);
+    Unv.PlaceLight6ToMap(&light6_2);
 
     LightVisibilityCache6 light6_3(90, 76, 155, MyColor(80000, 80000, 80000));
-    PlaceLight6ToMap(&light6_3);
+    Unv.PlaceLight6ToMap(&light6_3);
 
     //// more lights
     LightVisibilityCache6 light6_11(96, 58, 155, MyColor(1400000, 00000, 00000));
-    PlaceLight6ToMap(&light6_11);
+    Unv.PlaceLight6ToMap(&light6_11);
 
     LightVisibilityCache6 light6_12(96, 52, 155, MyColor(00000, 1400000, 00000));
-    PlaceLight6ToMap(&light6_12);
+    Unv.PlaceLight6ToMap(&light6_12);
 
     LightVisibilityCache6 light6_13(96, 46, 155, MyColor(00000, 00000, 1400000));
-    PlaceLight6ToMap(&light6_13);
+    Unv.PlaceLight6ToMap(&light6_13);
 
     //// more lights
     LightVisibilityCache6 light6_21(96, 42, 155, MyColor(5000, 5000, 5000));
-    PlaceLight6ToMap(&light6_21);
+    Unv.PlaceLight6ToMap(&light6_21);
 
     LightVisibilityCache6 light6_22(82, 40, 155, MyColor(15000, 15000, 15000));
-    PlaceLight6ToMap(&light6_22);
+    Unv.PlaceLight6ToMap(&light6_22);
 
     //// large one outside
     LightVisibilityCache6 light6_31(126, 82, 158, MyColor(1115000, 1115000, 1115000));
-    PlaceLight6ToMap(&light6_31);
+    Unv.PlaceLight6ToMap(&light6_31);
 
     ////
     LightVisibilityCache6 light6_d3(72, 62, 155, MyColor(150000, 150000, 150000));
-    PlaceLight6ToMap(&light6_d3);
+    Unv.PlaceLight6ToMap(&light6_d3);
 
 
     //// my light
-    MyLight = new LightVisibilityCache6(WorldOffsetX, WorldOffsetY, WorldOffsetZ, MyColor(50000, 50000, 50000));
-    PlaceMemoryLight6ToMap(MyLight);
-    MyLightV = new LightVisibilityCache6(WorldOffsetX, WorldOffsetY, WorldOffsetZ, MyColor(10000, 10000, 10000));
-    PlaceLight6ToMap(MyLightV);
+    Unv.MyLight = new LightVisibilityCache6(Unv.WorldOffsetX, Unv.WorldOffsetY, Unv.WorldOffsetZ, MyColor(50000, 50000, 50000));
+    Unv.PlaceMemoryLight6ToMap(Unv.MyLight);
+    Unv.MyLightV = new LightVisibilityCache6(Unv.WorldOffsetX, Unv.WorldOffsetY, Unv.WorldOffsetZ, MyColor(10000, 10000, 10000));
+    Unv.PlaceLight6ToMap(Unv.MyLightV);
 
     ////
 //    InitializeWorld();
@@ -2962,9 +1908,9 @@ int main(int argc, char** argv)
 
 
         ////
-        Tile * currentTile = worldMap->operator ()(WorldOffsetX, WorldOffsetY, WorldOffsetZ);
+        Tile * currentTile = Unv.worldMap->operator ()(Unv.WorldOffsetX, Unv.WorldOffsetY, Unv.WorldOffsetZ);
 
-        double visTimes = (NVisibilityTimes == 0) ? 0 : LastVisibilityProcessTime / NVisibilityTimes;
+        double visTimes = (Unv.NVisibilityTimes == 0) ? 0 : Unv.LastVisibilityProcessTime / Unv.NVisibilityTimes;
         double dfTimes = (NDFLighting == 0) ? 0 : 1 / (dfLightingTime / 1000 / NDFLighting);
         //double clrTimes = (NVisibilityTimes == 0) ? 0 : ClearVisibilityProcessTime / NVisibilityTimes;
         std::stringstream sTitle;
@@ -2977,9 +1923,9 @@ int main(int argc, char** argv)
 //        sTitle << "TrV2 " << ((ComputingCells.NTimeTaken == 0) ? 0 : 1 / (ComputingCells.TimeTaken / 1000 / ComputingCells.NTimeTaken)) << " fps. ";
   //      sTitle << "TrVC " << ((NTraceVisibilityCachedTime == 0) ? 0 : 1 / (TraceVisibilityCachedTime / 1000 / NTraceVisibilityCachedTime)) << " fps. ";
     //    sTitle << "TrVMC " << ((NTraceVisibilityCachedAsMemoryTime == 0) ? 0 : 1 / (TraceVisibilityCachedAsMemoryTime / 1000 / NTraceVisibilityCachedAsMemoryTime)) << " fps. ";
-        sTitle << "DX = " << WorldOffsetX << " ";
-        sTitle << "DY = " << WorldOffsetY << " ";
-        sTitle << "DZ = " << WorldOffsetZ << " ";
+        sTitle << "DX = " << Unv.WorldOffsetX << " ";
+        sTitle << "DY = " << Unv.WorldOffsetY << " ";
+        sTitle << "DZ = " << Unv.WorldOffsetZ << " ";
 
       //  if (currentTile != nullptr)
     //        sTitle << "L " << currentTile->ColorValueI.R << " "
@@ -3012,17 +1958,17 @@ int main(int argc, char** argv)
         int ty2 = 94 + 6 * sin(tvf2 + 3.14159);
 
         LightVisibilityCache6 light6_d1(tx1, ty1, 155, MyColor(0000, 140000, 00000));
-        PlaceLight6ToMap(&light6_d1);
+        Unv.PlaceLight6ToMap(&light6_d1);
 
         LightVisibilityCache6 light6_d2(tx2, ty2, 155, MyColor(140000, 00000, 00000));
-        PlaceLight6ToMap(&light6_d2);
+        Unv.PlaceLight6ToMap(&light6_d2);
 
 
         double tvf = cos(0.03f*ttime);
         tvf = tvf*tvf;
         int tvi = (int)(150000 * tvf);
         MyColor newFloatingColor(tvi, tvi, tvi);
-        ChangeLight6Color(&light6_d3, newFloatingColor);
+        Unv.ChangeLight6Color(&light6_d3, newFloatingColor);
 
         ttime += 1;
 
@@ -3087,20 +2033,20 @@ int main(int argc, char** argv)
 
 
         ////
-        LightCachesToRemove.clear();
+        Unv.LightCachesToRemove.clear();
 
-        RemoveLight6FromMap(&light6_d1);
-        RemoveLight6FromMap(&light6_d2);
+        Unv.RemoveLight6FromMap(&light6_d1);
+        Unv.RemoveLight6FromMap(&light6_d2);
         //RemoveLight6FromMap(&light6_d3);
 
-        for(auto lightCache : LightCachesToRemove)
-            lightWorldMap->DeleteLightCache(lightCache);
+        for(auto lightCache : Unv.LightCachesToRemove)
+            Unv.lightWorldMap->DeleteLightCache(lightCache);
 
         ////
         struct timeval startmt, endmt;
         gettimeofday(&startmt, NULL);
 
-        worldMap->ProcessMemoryTiles();
+        Unv.worldMap->ProcessMemoryTiles();
 
         ////
         gettimeofday(&endmt, NULL);
@@ -3124,25 +2070,25 @@ int main(int argc, char** argv)
 
 
         ////
-        LightCachesToRemove.clear();
+        Unv.LightCachesToRemove.clear();
 
 
         //// remove lights
-        for (WalkingAgent * wa : WalkingAgents)
+        for (WalkingAgent * wa : Unv.WalkingAgents)
         {
             if (wa->MemoryLight != nullptr)
             {
-                RemoveMemoryLight6FromMap(wa->MemoryLight);
+                Unv.RemoveMemoryLight6FromMap(wa->MemoryLight);
                 delete wa->MemoryLight;
             }
         }
 
 
-        for (WalkingAgent * wa : WalkingAgents)
+        for (WalkingAgent * wa : Unv.WalkingAgents)
         {
             if (wa->Light != nullptr)
             {
-                RemoveLight6FromMap(wa->Light);
+                Unv.RemoveLight6FromMap(wa->Light);
                 delete wa->Light;
             }
         }
@@ -3152,7 +2098,7 @@ int main(int argc, char** argv)
 
         //for(auto lightCache : LightCachesToRemove)
         //    lightWorldMap->DeleteLightCache(lightCache);
-        lightWorldMap->ProcessLightCaches();
+        Unv.lightWorldMap->ProcessLightCaches();
 
         ////
         gettimeofday(&endr, NULL);
@@ -3168,7 +2114,7 @@ int main(int argc, char** argv)
 
 
 
-        Tile * t = worldMap->operator ()(109, 77, 155);std::vector<MyColor> EGAColors;
+        Tile * t = Unv.worldMap->operator ()(109, 77, 155);std::vector<MyColor> EGAColors;
 
         int EGAColorsMappingQuantity = 32;
         MyColor * EGAColorsMapping;
@@ -3180,26 +2126,24 @@ int main(int argc, char** argv)
 
 
         ////
-        for (auto wa : WalkingAgents)
-            IterateAgent(wa);
+        Unv.IterateAgents();
 
-
-        for (WalkingAgent * wa : WalkingAgents)
+        for (WalkingAgent * wa : Unv.WalkingAgents)
         {
             wa->MemoryLight = new LightVisibilityCache6(wa->X, wa->Y, wa->Z, MyColor(5000, 5000, 5000));
-            PlaceMemoryLight6ToMap(wa->MemoryLight);
+            Unv.PlaceMemoryLight6ToMap(wa->MemoryLight);
         }
 
 
-        for (WalkingAgent * wa : WalkingAgents)
+        for (WalkingAgent * wa : Unv.WalkingAgents)
         {
             wa->Light = new LightVisibilityCache6(wa->X, wa->Y, wa->Z, MyColor(3000, 3000, 3000));
-            PlaceLight6ToMap(wa->Light);
+            Unv.PlaceLight6ToMap(wa->Light);
         }
 
 
         ////
-        TraceVisibilityCached6AsMemory(MyLight, false);
+        Unv.TraceVisibilityCached6AsMemory(Unv.MyLight, false);
 
 
 
@@ -3229,7 +2173,7 @@ int main(int argc, char** argv)
 
 
 
-        sTitle << "MTs " << worldMap->MemoryTilesDL.Count() << " ms. ";
+        sTitle << "MTs " << Unv.worldMap->MemoryTilesDL.Count() << " ms. ";
         sTitle << "MT " << mtimemt  << " ms. ";
         //sTitle << "LCaches " << lightWorldMap->AllLightCaches.size() << ". ";
         //sTitle << "LCaches " << lightWorldMap->AllLightCachesDL.Count() << ". ";
