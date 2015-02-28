@@ -101,12 +101,6 @@ public:
     {
         stream->write(reinterpret_cast<char*>(&I), sizeof(float));
     }
-
-    //
-    void LoadFromStream(std::istream * stream)
-    {
-
-    }
 };
 
 
