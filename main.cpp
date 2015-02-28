@@ -70,6 +70,8 @@ using namespace std;
 #include "lightvisibilitycache6.h"
 #include "lightworldmap.h"
 
+#include "astarpath.h"
+
 using namespace dflighting;
 
 
@@ -2859,54 +2861,6 @@ void ChangeDoor(int x, int y, int z)
 /////////////////
 /////// A* from Eric Lippert
 
-// A*
-class AStarPath
-{
-public:
-    Tile * LastStep;
-    AStarPath * PreviousSteps;
-    double TotalCost;
-
-    AStarPath(Tile * lastStep, AStarPath * previousSteps, double totalCost)
-    {
-        LastStep = lastStep;
-        PreviousSteps = previousSteps;
-        TotalCost = totalCost;
-    }
-
-    AStarPath(Tile * nodeStart) : AStarPath(nodeStart, nullptr, 0) {}
-
-    AStarPath * AddStep(Tile * step, double stepCost)
-    {
-        AStarPath * newPath = new AStarPath(step, this, TotalCost + stepCost);
-        return newPath;
-    }
-
-    std::vector<Tile *> * GetNodes()
-    {
-        auto outList = new std::vector<Tile *>;
-
-        stack<Tile*> outStack;
-
-        ////
-        AStarPath * path = this;
-
-        while (path != nullptr)
-        {
-            outStack.push(path->LastStep);
-            path = path->PreviousSteps;
-        }
-
-        while (!outStack.empty())
-        {
-            Tile * tile = outStack.top();
-            outList->push_back(tile);
-            outStack.pop();
-        }
-
-        return outList;
-    }
-};
 
 // A*
 template<typename U, typename V>
