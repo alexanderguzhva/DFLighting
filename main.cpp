@@ -67,6 +67,8 @@ using namespace std;
 #include "colorercell.h"
 #include "lightvisibilitycachestruct.h"
 #include "lightvisibilitycache1.h"
+#include "lightvisibilitycache6.h"
+#include "lightworldmap.h"
 
 using namespace dflighting;
 
@@ -1793,209 +1795,13 @@ int NTraceVisibilityCachedAsMemoryTime;
 
 
 
-//
-const int MaxCacheTime = 200;
 
 
 
 
-//
-class LightVisibilityCache6
-{
-public:
-    int WorldX;
-    int WorldY;
-    int WorldZ;
 
-    MyColor Color;
 
-    LightVisibilityCache1 * LeftLight;
-    LightVisibilityCache1 * RightLight;
-    LightVisibilityCache1 * TopLight;
-    LightVisibilityCache1 * BottomLight;
-    LightVisibilityCache1 * UpLight;
-    LightVisibilityCache1 * DownLight;
 
-    //
-    LightVisibilityCache6(int x, int y, int z, MyColor color)
-    {
-        WorldX = x;
-        WorldY = y;
-        WorldZ = z;
-
-        Color = color;
-
-        LeftLight = new LightVisibilityCache1(x, y, z, 0, color);
-        RightLight = new LightVisibilityCache1(x, y, z, 1, color);
-        TopLight = new LightVisibilityCache1(x, y, z, 2, color);
-        BottomLight = new LightVisibilityCache1(x, y, z, 3, color);
-        UpLight = new LightVisibilityCache1(x, y, z, 4, color);
-        DownLight = new LightVisibilityCache1(x, y, z, 5, color);
-    }
-
-    //
-    ~LightVisibilityCache6()
-    {
-        if (UpLight != nullptr) { delete UpLight; UpLight = nullptr; }
-        if (DownLight != nullptr) { delete DownLight; DownLight = nullptr; }
-        if (LeftLight != nullptr) { delete LeftLight; LeftLight = nullptr; }
-        if (RightLight != nullptr) { delete RightLight; RightLight = nullptr; }
-        if (TopLight != nullptr) { delete TopLight; TopLight = nullptr; }
-        if (BottomLight != nullptr) { delete BottomLight; BottomLight = nullptr; }
-    }
-};
-
-//
-class LightWorldMap
-{
-public:
-    LightVisibilityCacheStruct ** LightTiles;
-
-    //// std::unordered_set<LightVisibilityCacheStruct*> AllLightCaches;
-    MyDoubleLinkedList<LightVisibilityCacheStruct> AllLightCachesDL;
-
-    uint32_t x_size;
-    uint32_t y_size;
-    uint32_t z_size;
-
-    LightWorldMap(int xs, int ys, int zs)
-    {
-        x_size = xs;
-        y_size = ys;
-        z_size = zs;
-
-        LightTiles = new LightVisibilityCacheStruct*[6 * z_size * x_size * y_size];
-        for (int i = 0; i < 6 * z_size * x_size * y_size; i++)
-            LightTiles[i] = nullptr;
-    }
-
-    //
-    LightVisibilityCacheStruct *& operator() (int x, int y, int z, int dir)
-    {
-        return LightTiles[x + x_size * (y + y_size * (z + dir * z_size))];
-    }
-
-    //
-    LightVisibilityCacheStruct *& operator() (MyIntDPoint & point)
-    {
-        return this->operator ()(point.X, point.Y, point.Z, point.Dir);
-    }
-
-    //
-    LightVisibilityCacheStruct *& operator() (LightVisibilityCache1 & light1)
-    {
-        return this->operator ()(light1.WorldX, light1.WorldY, light1.WorldZ, light1.Dir);
-    }
-
-    //
-    LightVisibilityCacheStruct *& operator() (LightVisibilityCache1 *& light1)
-    {
-        return this->operator ()(light1->WorldX, light1->WorldY, light1->WorldZ, light1->Dir);
-    }
-
-    //
-    LightVisibilityCacheStruct * CreateLightCache(int x, int y, int z, int dir)
-    {
-        LightVisibilityCacheStruct * light = new LightVisibilityCacheStruct(x, y, z, dir);
-        light->CurrentCacheTime = MaxCacheTime;
-        this->operator ()(x, y, z, dir) = light;
-
-        //AllLightCaches.insert(light);
-        int index = AllLightCachesDL.AddItem(light);
-        light->DLIndex = index;
-
-        return light;
-    }
-
-    //
-    void DeleteLightCache(LightVisibilityCacheStruct * light)
-    {
-        ////AllLightCaches.erase(light);
-        AllLightCachesDL.DeleteItem(light->DLIndex);
-
-        //// tell potential tiles to forget me
-        for (Tile * potentialTile : light->PotentialTiles)
-            potentialTile->PotentialLightCaches.erase(light->GetIntDPoint());
-
-        ////
-        this->operator ()(light->WorldX, light->WorldY, light->WorldZ, light->Dir) = nullptr;
-        delete light;
-    }
-
-    //
-    ~LightWorldMap()
-    {
-        if (LightTiles != nullptr)
-        {
-            delete [] LightTiles;
-            LightTiles = nullptr;
-        }
-
-        ////
-        //AllLightCaches.clear();
-        AllLightCachesDL.Clear();
-    }
-
-    //
-    void ProcessLightCaches()
-    {
-        /*
-        std::vector<LightVisibilityCacheStruct *> itemsToRemove;
-
-        for (LightVisibilityCacheStruct * lightCache : AllLightCaches)
-        {
-            if (lightCache->LightsHandled > 0)
-            {
-                lightCache->CurrentCacheTime = MaxCacheTime;
-                continue;
-            }
-
-            ////
-            lightCache->CurrentCacheTime -= 1;
-            if (lightCache->CurrentCacheTime <= 0)
-            {
-                //// it's a subject for a removal
-                itemsToRemove.push_back(lightCache);
-            }
-        }
-
-        for (LightVisibilityCacheStruct * lightCache : itemsToRemove)
-            DeleteLightCache(lightCache);
-            */
-
-        if (AllLightCachesDL.Count() == 0)
-            return;
-
-        int element = AllLightCachesDL.First();
-        while (element != -1)
-        {
-            MyDoubleLinkedListElement<LightVisibilityCacheStruct> * currentItem = AllLightCachesDL.operator ()(element);
-            LightVisibilityCacheStruct * lightCache = currentItem->Data;
-
-            element = currentItem->Next;
-
-            if (lightCache->LightsHandled > 0)
-            {
-                //// update time
-                lightCache->CurrentCacheTime = MaxCacheTime;
-
-                //// remove all potential tiles
-                for (Tile * potentialTile : lightCache->PotentialTiles)
-                    potentialTile->PotentialLightCaches.erase(lightCache->GetIntDPoint());
-                lightCache->PotentialTiles.clear();
-            }
-            else
-            {
-                lightCache->CurrentCacheTime -= 1;
-                if (lightCache->CurrentCacheTime <= 0)
-                {
-                    DeleteLightCache(lightCache);
-                    //AllLightCachesDL.DeleteItem(currentItem->MyID);
-                }
-            }
-        }
-    }
-};
 
 
 LightWorldMap * lightWorldMap;

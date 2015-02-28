@@ -15,7 +15,8 @@ SOURCES += main.cpp \
     tile.cpp \
     worldmap.cpp \
     lightvisibilitycache1.cpp \
-    lightvisibilitycache6.cpp
+    lightvisibilitycache6.cpp \
+    lightworldmap.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -62,6 +63,7 @@ HEADERS += \
     colorercell.h \
     lightvisibilitycachestruct.h \
     lightvisibilitycache1.h \
-    lightvisibilitycache6.h
+    lightvisibilitycache6.h \
+    lightworldmap.h
 
 
