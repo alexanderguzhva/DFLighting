@@ -88,7 +88,7 @@ public:
     }
 
     //
-    MyIntDPoint GetIntDPoint()
+    MyIntDPoint GetIntDPoint() const
     {
         return MyIntDPoint(WorldX, WorldY, WorldZ, Dir);
     }

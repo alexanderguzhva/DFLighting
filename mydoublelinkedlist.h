@@ -148,19 +148,19 @@ public:
     }
 
     //
-    int Count()
+    int Count() const
     {
         return NFreeNList;
     }
 
     //
-    int First()
+    int First() const
     {
         return FirstItem;
     }
 
     //
-    int Last()
+    int Last() const
     {
         return LastItem;
     }

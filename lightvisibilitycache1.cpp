@@ -137,7 +137,7 @@ void LightVisibilityCache1::ChangeColor(const MyColor & newColor)
 }
 
 //
-MyIntDPoint LightVisibilityCache1::GetIntDPoint()
+MyIntDPoint LightVisibilityCache1::GetIntDPoint() const
 {
     return MyIntDPoint(WorldX, WorldY, WorldZ, Dir);
 }

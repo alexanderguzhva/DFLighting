@@ -38,7 +38,7 @@ public:
     void ChangeColor(const MyColor & newColor);
 
     //
-    MyIntDPoint GetIntDPoint();
+    MyIntDPoint GetIntDPoint() const;
 };
 
 
