@@ -18,7 +18,8 @@ SOURCES += main.cpp \
     lightvisibilitycache6.cpp \
     lightworldmap.cpp \
     astarpath.cpp \
-    astarpathfinder.cpp
+    astarpathfinder.cpp \
+    walkingagent.cpp
 
 QMAKE_CXXFLAGS += "-std=c++11"
 QMAKE_CXXFLAGS_RELEASE -= -O2
@@ -69,6 +70,7 @@ HEADERS += \
     lightworldmap.h \
     astarpath.h \
     astarpriorityqueue.h \
-    astarpathfinder.h
+    astarpathfinder.h \
+    walkingagent.h
 
 

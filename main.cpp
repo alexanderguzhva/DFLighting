@@ -74,6 +74,8 @@ using namespace std;
 #include "astarpriorityqueue.h"
 #include "astarpathfinder.h"
 
+#include "walkingagent.h"
+
 using namespace dflighting;
 
 
@@ -2964,54 +2966,6 @@ void LoadDFDwarvesSetBannedCells()
 }
 
 
-////
-class WalkingAgent
-{
-public:
-    int X;
-    int Y;
-    int Z;
-
-    int XPicture;
-    int YPicture;
-
-    std::vector<Tile *> * WalkingPath;
-    int CurrentTile;
-
-    int LightPower;
-
-    LightVisibilityCache6 * MemoryLight;
-    LightVisibilityCache6 * Light;
-
-    WalkingAgent()
-    {
-        WalkingPath = nullptr;
-
-        MemoryLight = nullptr;
-        Light = nullptr;
-    }
-
-    ~WalkingAgent()
-    {
-        if (WalkingPath != nullptr)
-        {
-            delete WalkingPath;
-            WalkingPath = nullptr;
-        }
-
-        if (MemoryLight != nullptr)
-        {
-            delete MemoryLight;
-            MemoryLight = nullptr;
-        }
-
-        if (Light != nullptr)
-        {
-            delete Light;
-            Light = nullptr;
-        }
-    }
-};
 
 
 //
@@ -3967,7 +3921,8 @@ int main(int argc, char** argv)
 
     std::cout << "Bug: dwarf sees 8 elements forward, player - 40.";
     std::cout << "But if player goes to a cell that has a lighting cache "
-              << "created by dwarf then it will see a light of 8, not 40".
+              << "created by dwarf then it will see a light of 8, not 40" <<
+                 std::endl;
 
     EGACMapper.CreateMapping();
 
