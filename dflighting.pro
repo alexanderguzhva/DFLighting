@@ -66,6 +66,7 @@ HEADERS += \
     lightvisibilitycache1.h \
     lightvisibilitycache6.h \
     lightworldmap.h \
-    astarpath.h
+    astarpath.h \
+    astarpriorityqueue.h
 
 
