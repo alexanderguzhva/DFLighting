@@ -60,6 +60,7 @@ public:
     //
     void GenerateLinesCombined(int nGenPointsUF);
 
+
     //// 0 = left, 1 = right, 2 = top, 3 = bottom, 4 = up, 5 = down
     template<int dir>
     void TraceVisibility3(int stx, int sty, int stz, const MyIntensity & intensity, int maxLayers, WorldMap * worldMap)
@@ -515,7 +516,7 @@ public:
     }
 
 
-
+    /*
     //// 0 = left, 1 = right, 2 = top, 3 = bottom, 4 = up, 5 = down
     template<int dir>
     void TraceVisibility2(int stx, int sty, int stz, const MyIntensity & intensity, WorldMap * worldMap)
@@ -937,6 +938,8 @@ public:
 
 
     //
+    */
+
     void ClearITraced();
 
     //
