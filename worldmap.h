@@ -17,8 +17,8 @@ public:
     int x_size;
     int y_size;
     int z_size;
-    std::vector<Material*> * inorganic_material;
-    std::vector<Material*> * organic_material;
+    std::vector<Material *> inorganic_material;
+    std::vector<Material *> organic_material;
     Tile ** Tiles;
 
     //std::vector<Tile*> MemoryTiles;

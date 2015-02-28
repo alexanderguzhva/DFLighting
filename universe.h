@@ -174,6 +174,9 @@ public:
 
     //
     void TrackSaplingsNBushes();
+
+private:
+    void ReleaseWalkingAgents();
 };
 
 
